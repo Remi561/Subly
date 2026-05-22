@@ -4,7 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -20,7 +20,7 @@ model User {
   email String @unique
   password String 
 
-  baseCurreny String
+  baseCurrency String
   role Role @default(USER)
   
   subscriptions Subscription[]
@@ -34,7 +34,7 @@ model User {
 model Subscription {
   id String @id @default(cuid())
   userId String
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   name String
   logoUrl String
@@ -49,6 +49,8 @@ model Subscription {
   status Status @default(ACTIVE)
   nextBillingDate DateTime
 
+  histores History[]
+
   createdAt DateTime @default(now())
   updateAt DateTime @updatedAt
 
@@ -59,7 +61,28 @@ model Subscription {
   @@index([status, nextBillingDate])
   @@unique([userId, name])
 }
+model History {
+  id String @id @default(cuid())
 
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  paidAmount    Decimal @db.Decimal(12, 2)
+  paidCurrency  String
+
+  baseCurrency  String
+  exchangeRate  Decimal @db.Decimal(12, 4)
+  settledAmount Decimal @db.Decimal(12, 2)
+
+  paidAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subscriptionId])
+  @@index([paidAt])
+
+}
 enum Role {
   USER
   ADMIN
