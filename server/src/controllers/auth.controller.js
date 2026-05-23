@@ -8,7 +8,14 @@ export async function register(req, res, next) {
   // const {name,email, username, password, baseCurrency} = req.body
   try {
     const parsedBody = RegisterSchemas.safeParse(req.body);
-    const supportedCurrencies = ["NGN", "USD", "EUR", "GBP", "CAD", "JPY"];
+    const currencies = await prisma.rates.findUnque({
+      where: {
+        baseCurrency: "EUR",
+      },
+    });
+
+    const supportedCurrencies = Object.keys(currencies.rates);
+
     if (!parsedBody.success) {
       return res.status(400).json({
         errors: parsedBody.error.flatten().fieldErrors,
@@ -59,6 +66,7 @@ export async function register(req, res, next) {
         id: user.id,
         username: user.username,
         role: user.role,
+        baseCurrency: user.baseCurrency,
       },
       env.REFRESH_TOKEN_SECRET,
       { expiresIn: "30d" },
@@ -69,6 +77,7 @@ export async function register(req, res, next) {
         id: user.id,
         username: user.username,
         role: user.role,
+        baseCurrency: user.baseCurrency,
       },
       env.ACCESS_TOKEN_SECRET,
       { expiresIn: "15m" },
@@ -128,6 +137,7 @@ export async function login(req, res, next) {
         id: user.id,
         username: user.username,
         role: user.role,
+        baseCurrency: user.baseCurrency,
       },
       env.REFRESH_TOKEN_SECRET,
       { expiresIn: "30d" },
@@ -138,6 +148,7 @@ export async function login(req, res, next) {
         id: user.id,
         username: user.username,
         role: user.role,
+        baseCurrency: user.baseCurrency,
       },
       env.ACCESS_TOKEN_SECRET,
       { expiresIn: "15m" },

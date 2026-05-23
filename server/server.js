@@ -4,6 +4,7 @@ import { authRouter } from './src/routes/auth.route.js';
 import cookieParser from "cookie-parser";
 import { subscriptionRouter } from "./src/routes/subs.route.js";
 import { requireAuth } from "./src/middlewares/requireAuth.middleware.js";
+import { apiLimiter } from "./src/middlewares/rateLimiter.middleware.js";
 
 
 
@@ -16,7 +17,7 @@ app.use(cookieParser());
 // apis
 
 app.use('/api/auth', authRouter)
-app.use("/api/subscription", requireAuth, subscriptionRouter);
+app.use("/api/subscription", apiLimiter, requireAuth, subscriptionRouter);
 
 app.use((err, req, res, next) => {
   if (err) {

@@ -95,11 +95,10 @@ export const CreateSubscriptionSchema = z.object({
     })
     .refine((date) => date > new Date(), {
       message: "Next billing date must be in the future",
-    }),
+    })
+    .optional(),
 
   category: categorySchema.default("OTHER").optional(),
-
- 
 });
 
 export const UpdateSubscriptionSchema = z
