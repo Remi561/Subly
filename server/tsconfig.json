@@ -1,7 +1,6 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
-  "compilerOptions": { 
-    
+  "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -12,8 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
-
   },
-  "include": ["src"],
+  "include": ["src", "src/routes/rate.route.js"],
   "exclude": ["node_modules", "dist"]
 }

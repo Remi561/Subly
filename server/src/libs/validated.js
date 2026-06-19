@@ -1,5 +1,5 @@
 import { url } from "zod";
-import z  from 'zod';
+import z from "zod";
 
 export const RegisterSchemas = z.object({
   name: z
@@ -30,12 +30,14 @@ export const RegisterSchemas = z.object({
     .string({ error: "Must be a letter" })
     .trim()
     .length(3, { error: "Must not be more than 3" })
-    .transform(value => value.toUpperCase()),
+    .transform((value) => value.toUpperCase()),
 });
 
-export const LoginSchemas = RegisterSchemas.omit({ name: true, username: true, baseCurrency: true })
-
-
+export const LoginSchemas = RegisterSchemas.omit({
+  name: true,
+  username: true,
+  baseCurrency: true,
+});
 
 const currencySchema = z
   .string()
@@ -132,8 +134,6 @@ export const UpdateSubscriptionSchema = z
       .optional(),
 
     category: categorySchema.optional(),
-
-   
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required to update",
@@ -148,13 +148,15 @@ export const SubscriptionQuerySchema = z.object({
 
   billingCycle: billingCycleSchema.optional(),
 
-  search: z
-    .string()
-    .trim()
-    .max(50, "Search query is too long")
-    .optional(),
+  search: z.string().trim().max(50, "Search query is too long").optional(),
 
   page: z.coerce.number().int().positive().default(1),
 
   limit: z.coerce.number().int().positive().max(100).default(10),
+});
+
+export const RenewSubscriptionSchemas = z.object({
+  amount: amountSchema,
+  currency: currencySchema,
+  billingCycle: billingCycleSchema,
 });
