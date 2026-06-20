@@ -1,4 +1,5 @@
 import clsx from "clsx";
+
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs) {
@@ -140,19 +141,20 @@ async function extractErrorMessage(response) {
 let refreshPromise = null;
 
 export async function fetchWithAuth(url, options = {}) {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   try {
-    let response = await fetch(url, {
+    let response = await fetch(`${API_BASE_URL}${url}`, {
       ...options,
       credentials: "include", // Include cookies for authentication
     });
 
     if (response.status === 401) {
       if (!refreshPromise) {
-        refreshPromise = fetch("/api/refresh", {
+        refreshPromise = fetch(`${API_BASE_URL}/api/refresh`, {
           method: "POST",
           credentials: "include",
         }).finally(() => {
-          refreshPromise = null
+          refreshPromise = null;
         });
       }
 
@@ -164,7 +166,7 @@ export async function fetchWithAuth(url, options = {}) {
 
       }
 
-      response = await fetch(url, {
+      response = await fetch(`${API_BASE_URL}${url}`, {
         ...options,
         credentials: "include",
       });

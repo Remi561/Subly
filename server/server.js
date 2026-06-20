@@ -14,10 +14,36 @@ import { meRouter } from "./src/routes/me.route.js";
 import { refreshRouter } from "./src/routes/refresh.route.js";
 import { currencyRouters } from "./src/routes/rate.route.js";
 import { historyRouter } from "./src/routes/history.route.js";
+import cors from "cors";
 
 
 
 const app = express()
+
+
+
+
+const allowedOrigins = [
+  "http://localhost:5173", // Your local Vite development server
+  "https://subly-chi.vercel.app", // ⚠️ REPLACE WITH YOUR ACTUAL VERCEL URL
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true, // Crucial if you are passing JWT cookies back and forth!
+  }),
+);
 
 app.use(express.json())
 app.use(cookieParser());
