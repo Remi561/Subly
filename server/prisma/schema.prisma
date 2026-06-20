@@ -89,6 +89,8 @@ model History {
 
   paidAt DateTime @default(now())
 
+  type Type @default(CREATED)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -130,4 +132,11 @@ enum Category {
   EDUCATION
   AI_TOOLS
   OTHER
+}
+
+enum Type {
+  CREATED
+  EDITED
+  RENEWED
+
 }

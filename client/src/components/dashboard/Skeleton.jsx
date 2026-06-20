@@ -28,6 +28,13 @@ export function StatCardsSkeleton() {
   );
 }
 
+export function ChartSkeleton() {
+  return (
+    <CardContent>
+      <Skeleton className="h-70 w-full" />
+    </CardContent>
+  );
+}
 
 export function SubscriptionTableSkeleton() {
   // Generate 5 empty rows for the loading state

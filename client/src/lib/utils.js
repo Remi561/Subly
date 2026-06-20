@@ -131,11 +131,8 @@ async function extractErrorMessage(response) {
     // Try to parse it as JSON first
     const data = await clonedResponse.json();
 
-    // Adjust these keys based on what your Express backend actually sends!
-    // (e.g., res.status(400).json({ message: "..." }) or { error: "..." })
     return data.message || data.error || "Something went wrong";
   } catch{
-    // If it's not JSON (like an Nginx 502 HTML page), fallback to generic error
     return "An unexpected server error occurred";
   }
 }

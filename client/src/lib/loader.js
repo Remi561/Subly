@@ -13,3 +13,15 @@ export async function dashboardLoader() {
    }
 }
 
+export async function authLoader() {
+  try {
+    const response = await fetchWithAuth("/api/me");
+    if (response.ok) {
+      return redirect("/dashboard");
+    }
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+

@@ -8,7 +8,10 @@ import { StatCard } from "../../components/dashboard/Stats";
 import { SpendingByCategoryChart, SpendingOverviewChart } from "@/components/dashboard/Chart";
 import { OverviewTable } from "@/components/dashboard/Overview";
 import { useRouteLoaderData } from "react-router";
-import { StatCardsSkeleton } from "@/components/dashboard/Skeleton";
+import {
+  StatCardsSkeleton,
+  ChartSkeleton,
+} from "@/components/dashboard/Skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/utils";
 import { SubscriptionTableSkeleton } from "@/components/dashboard/Skeleton";
@@ -27,13 +30,18 @@ const Overview = () => {
     queryFn: ()=> fetchWithAuth('/api/subscription').then(res => res.json())
   })
 
-  const { data: chartData, isLoading: chartDataLoading } = useQuery(
-    {
-      queryKey: ['chart'],
-      queryFn: () => fetchWithAuth('/api/subscription/expenses').then(res => res.json())
-    }
-  )
+  const { data: chartData, isLoading: chartDataLoading } = useQuery({
+    queryKey: ["chart", "line chart"],
+    queryFn: () =>
+      fetchWithAuth("/api/subscription/expenses").then((res) => res.json()),
+  });
 
+  const { data: pieChart, isLoading: pieChartLoading } = useQuery({
+    queryKey: ["chart", "piechart"],
+    queryFn: () =>
+      fetchWithAuth("/api/subscription/categories").then((res) => res.json()),
+  });
+  console.log(pieChart);
 
 
 
@@ -55,26 +63,42 @@ const Overview = () => {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        
-          {isLoading ? <StatCardsSkeleton/>: <StatCard stat={stats} baseCurrency={data?.user?.baseCurrency}/>}
-         
-         
-        
+        {isLoading ? (
+          <StatCardsSkeleton />
+        ) : (
+          <StatCard stat={stats} baseCurrency={data?.user?.baseCurrency} />
+        )}
       </div>
 
       {/* Charts */}
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-     
-        {chartDataLoading ? <p> loading</p> : <SpendingOverviewChart chartData={chartData} baseCurrency={data?.user?.baseCurrency}/>}
-       <SpendingByCategoryChart/>
+        {chartDataLoading ? (
+          <ChartSkeleton />
+        ) : (
+          <SpendingOverviewChart
+            chartData={chartData}
+            baseCurrency={data?.user?.baseCurrency}
+          />
+        )}
+        {pieChartLoading ? (
+          <ChartSkeleton />
+        ) : (
+          <SpendingByCategoryChart
+            pieChart={pieChart}
+            baseCurrency={data?.user?.baseCurrency}
+          />
+        )}
       </div>
-  
-            
-         {subsLoading ? <SubscriptionTableSkeleton/> : <OverviewTable subscriptions={rawData?.data} baseCurrency={data?.user?.baseCurrency} />}
-        
-      
-      
+
+      {subsLoading ? (
+        <SubscriptionTableSkeleton />
+      ) : (
+        <OverviewTable
+          subscriptions={rawData?.data}
+          baseCurrency={data?.user?.baseCurrency}
+        />
+      )}
     </section>
   );
 }

@@ -44,7 +44,8 @@ export function SubscriptionActions({ subscription }) {
         // Instantly refresh the table!
        
         queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
-        queryClient.invalidateQueries({ queryKey: ['subscription'] })
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["chart"] });
         toast.success(`${subscription.name} has been successfully deleted`);
       },
       onError: () => {

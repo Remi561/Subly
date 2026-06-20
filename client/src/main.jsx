@@ -16,7 +16,7 @@ import Add from "./pages/dashboard/subscription/Add";
 import Edit from "./pages/dashboard/subscription/Edit";
 import Error from "./pages/Error";
 
-import { dashboardLoader } from "./lib/loader.js";
+import { authLoader, dashboardLoader } from "./lib/loader.js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -38,6 +38,7 @@ const router = createBrowserRouter([
 
   {
     path: "/auth",
+    loader: authLoader,
 
     children: [
       { path: "login", element: <Auth />, action: login },

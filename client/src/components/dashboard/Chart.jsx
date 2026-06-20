@@ -1,4 +1,3 @@
-
 import {
   Area,
   AreaChart,
@@ -26,28 +25,28 @@ import {
 
 import { formatMoney } from "@/lib/utils";
 
-const categoryData = [
-  {
-    category: "Entertainment",
-    amount: 24500,
-    fill: "var(--color-subly-brand-blue)",
-  },
-  {
-    category: "Productivity",
-    amount: 12000,
-    fill: "var(--color-subly-brand-purple)",
-  },
-  {
-    category: "AI Tools",
-    amount: 8000,
-    fill: "var(--color-subly-success)",
-  },
-  {
-    category: "Storage",
-    amount: 3750,
-    fill: "var(--color-subly-warning)",
-  },
-];
+// const categoryData = [
+//   {
+//     category: "Entertainment",
+//     amount: 24500,
+//     fill: "var(--color-subly-brand-blue)",
+//   },
+//   {
+//     category: "Productivity",
+//     amount: 12000,
+//     fill: "var(--color-subly-brand-purple)",
+//   },
+//   {
+//     category: "AI Tools",
+//     amount: 8000,
+//     fill: "var(--color-subly-success)",
+//   },
+//   {
+//     category: "Storage",
+//     amount: 3750,
+//     fill: "var(--color-subly-warning)",
+//   },
+// ];
 
 const spendingChartConfig = {
   total: {
@@ -56,34 +55,20 @@ const spendingChartConfig = {
   },
 };
 
-const categoryChartConfig = {
-  entertainment: {
+const chartConfig = {
+  ENTERTAINMENT: {
     label: "Entertainment",
-    color: "var(--color-entertainment)",
+    color: "var(--color-subly-brand-blue)",
   },
-  productivity: {
+  AI_TOOLS: { label: "AI Tools", color: "var(--color-ai)" },
+  STORAGE: { label: "Storage", color: "var(--color-storage)" },
+  PRODUCTIVITY: {
     label: "Productivity",
-    color: "var(--color-productivity)",
-  },
-  aiTools: {
-    label: "AI Tools",
-    color: "var(--color-ai-tools)",
-  },
-  storage: {
-    label: "Storage",
-    color: "var(--color-storage)",
+    color: "var(--color-subly-brand-purple)",
   },
 };
 
-function formatMoneyDummy(value) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-export function SpendingOverviewChart({chartData, baseCurrency}) {
+export function SpendingOverviewChart({ chartData, baseCurrency }) {
   return (
     <Card className="rounded-3xl border-subly-border bg-subly-card shadow-sm flex flex-col">
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
@@ -103,10 +88,7 @@ export function SpendingOverviewChart({chartData, baseCurrency}) {
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col items-end justify-center">
-        <ChartContainer
-          config={spendingChartConfig}
-          className="h-70 w-full"
-        >
+        <ChartContainer config={spendingChartConfig} className="h-70 w-full">
           <AreaChart
             accessibilityLayer
             data={chartData}
@@ -156,7 +138,7 @@ export function SpendingOverviewChart({chartData, baseCurrency}) {
             />
 
             <YAxis
-              dataKey='total'
+              dataKey="total"
               tickLine={false}
               axisLine={false}
               tickMargin={10}
@@ -164,7 +146,7 @@ export function SpendingOverviewChart({chartData, baseCurrency}) {
                 fill: "var(--color-subly-text-secondary)",
                 fontSize: 12,
               }}
-              tickFormatter={(value) => `₦${value / 100000}k`}
+              tickFormatter={(value) => `${value / 100}k`}
             />
 
             <ChartTooltip
@@ -207,9 +189,7 @@ export function SpendingOverviewChart({chartData, baseCurrency}) {
   );
 }
 
-export function SpendingByCategoryChart() {
-  const total = categoryData.reduce((sum, item) => sum + item.amount, 0);
-
+export function SpendingByCategoryChart({ pieChart, baseCurrency }) {
   return (
     <Card className="rounded-3xl border-subly-border bg-subly-card shadow-sm">
       <CardHeader>
@@ -225,7 +205,7 @@ export function SpendingByCategoryChart() {
       <CardContent>
         <div className="relative">
           <ChartContainer
-            config={categoryChartConfig}
+            config={chartConfig}
             className="mx-auto h-[240px] w-full"
           >
             <PieChart accessibilityLayer>
@@ -234,13 +214,13 @@ export function SpendingByCategoryChart() {
                 content={
                   <ChartTooltipContent
                     hideLabel
-                    formatter={(value) => formatMoneyDummy(value)}
+                    formatter={(value) => formatMoney(value, baseCurrency)}
                   />
                 }
               />
 
               <Pie
-                data={categoryData}
+                data={pieChart.categoryTotal}
                 dataKey="amount"
                 nameKey="category"
                 innerRadius={65}
@@ -248,8 +228,11 @@ export function SpendingByCategoryChart() {
                 paddingAngle={4}
                 strokeWidth={0}
               >
-                {categoryData.map((item) => (
-                  <Cell key={item.category} fill={item.fill} />
+                {pieChart?.categoryTotal.map((item) => (
+                  <Cell
+                    key={item.category}
+                    fill={chartConfig[item.id]?.color || "#888888"}
+                  />
                 ))}
               </Pie>
             </PieChart>
@@ -260,42 +243,41 @@ export function SpendingByCategoryChart() {
               Total
             </p>
             <p className="text-lg font-bold text-subly-text-primary">
-              {formatMoneyDummy(total)}
+              {formatMoney(pieChart?.grandTotal, baseCurrency)}
             </p>
           </div>
         </div>
 
         <div className="mt-5 space-y-3">
-          {categoryData.map((item) => {
-            const percentage = Math.round((item.amount / total) * 100);
+          {pieChart &&
+            pieChart?.categoryTotal.map((item) => {
+              return (
+                <div
+                  key={item.category}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: chartConfig[item.id]?.color }}
+                    />
 
-            return (
-              <div
-                key={item.category}
-                className="flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: item.fill }}
-                  />
+                    <span className="text-sm font-medium text-subly-text-primary capitalize">
+                      {item.category}
+                    </span>
+                  </div>
 
-                  <span className="text-sm font-medium text-subly-text-primary">
-                    {item.category}
-                  </span>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-subly-text-primary">
+                      {item.percentage}%
+                    </p>
+                    <p className="text-xs text-subly-text-secondary">
+                      {formatMoney(item.amount, baseCurrency)}
+                    </p>
+                  </div>
                 </div>
-
-                <div className="text-right">
-                  <p className="text-sm font-bold text-subly-text-primary">
-                    {percentage}%
-                  </p>
-                  <p className="text-xs text-subly-text-secondary">
-                    {formatMoneyDummy(item.amount)}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </CardContent>
     </Card>

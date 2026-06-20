@@ -64,12 +64,7 @@ export async function getPaginatedSubscription(req, res, next) {
 
     // 2. Only add the OR search block if the user actually typed a search term
     if (search) {
-      whereClause.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-
-        // Reminder: If 'status' is an Enum in your Prisma schema,
-        // 'contains' will throw an error here. It must be a String field!
-      ];
+      whereClause.OR = [{ name: { contains: search, mode: "insensitive" } }];
     }
 
     // 3. Run the transaction using the shared whereClause
@@ -197,13 +192,52 @@ export async function getSubscriptionExpenses(req, res, next) {
   }
 }
 
+
 export async function getSpendingByCategory(req, res, next) {
   try {
     const userId = req.user.id;
+    // 1. Group subscriptions by category and sum up the settled amounts
+    const categorySums = await prisma.subscription.groupBy({
+      by: ["category"],
+      where: {
+        userId: userId,
+        status: { not: "ARCHIVED" }, // Optional: exclude archived accounts
+      },
+      _sum: {
+        settledAmount: true, // Summing up amounts normalized to base currency
+      },
+    });
 
-    return res.json({ userId });
-  } catch (err) {
-    next(err);
+    // 2. Calculate the absolute Grand Total of all spending combined
+    const grandTotal = categorySums.reduce((acc, item) => {
+      return acc + Number(item._sum.settledAmount || 0);
+    }, 0);
+
+    if (grandTotal === 0) {
+      return res.status(200).json([]);
+    }
+
+    const formattedPieData = categorySums.map((item) => {
+      const amount = Number(item._sum.settledAmount || 0);
+
+      const percentage = Math.round((amount / grandTotal) * 100 * 10) / 10;
+
+      return {
+        id: item.category,
+
+        category: item.category.replace(/_/g, " ").toLowerCase(),
+        amount: amount,
+        percentage: percentage,
+      };
+    });
+
+    formattedPieData.sort((a, b) => b.amount - a.amount);
+
+    return res
+      .status(200)
+      .json({ grandTotal, categoryTotal: formattedPieData });
+  } catch (error) {
+    next(error);
   }
 }
 

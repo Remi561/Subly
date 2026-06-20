@@ -1,7 +1,14 @@
 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCategoryDotClass, getCategoryTextClass, getStatusBadgeClass, formatBillingCycle, formatCategory, formatDate, formatMoney } from '@/lib/utils'
+import {
+  getCategoryStyle,
+  getStatusBadgeClass,
+  formatBillingCycle,
+  formatCategory,
+  formatDate,
+  formatMoney,
+} from "@/lib/utils";
 
 
 import {
@@ -81,87 +88,76 @@ function DesktopTable({ subscriptions, baseCurrency }) {
         </TableHeader>
 
         <TableBody>
-          {subscriptions.map((subscription) => (
-            <TableRow
-              key={subscription.id}
-              className="border-subly-border hover:bg-subly-soft-blue/40"
-            >
-              <TableCell className="px-6 py-5">
-                <div className="flex items-center gap-3">
-                  <SubscriptionLogo subscription={subscription} />
+          {subscriptions.map((subscription) => {
+            const categoryStyle = getCategoryStyle(subscription.category);
+            return (
+              <TableRow
+                key={subscription.id}
+                className="border-subly-border hover:bg-subly-soft-blue/40"
+              >
+                <TableCell className="px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <SubscriptionLogo subscription={subscription} />
 
-                  <div>
-                    <p className="font-semibold text-subly-text-primary capitalize">
-                      {subscription.name}
-                    </p>
-
-                    
+                    <div>
+                      <p className="font-semibold text-subly-text-primary capitalize">
+                        {subscription.name}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </TableCell>
+                </TableCell>
 
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`h-2 w-2 rounded-full ${getCategoryDotClass(
-                      subscription.category,
-                    )}`}
-                  />
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`h-2 w-2 rounded-full ${categoryStyle.dot}`}
+                    />
 
-                  <span
-                    className={`text-sm font-medium ${getCategoryTextClass(
-                      subscription.category,
+                    <span
+                      className={`text-sm font-medium ${categoryStyle.text}`}
+                    >
+                      {formatCategory(subscription.category)}
+                    </span>
+                  </div>
+                </TableCell>
+
+                <TableCell className="font-medium text-subly-text-primary">
+                  {formatBillingCycle(subscription.billingCycle)}
+                </TableCell>
+
+                <TableCell>
+                  <p className="font-semibold text-subly-text-primary">
+                    {formatDate(subscription.nextBillingDate)}
+                  </p>
+                </TableCell>
+
+                <TableCell>
+                  <p className="font-bold text-subly-text-primary">
+                    {formatMoney(subscription.settledAmount, baseCurrency)}
+                  </p>
+
+                  <p className="mt-1 text-xs font-medium text-subly-text-secondary">
+                    {formatMoney(subscription.amount, subscription.currency)}
+                  </p>
+                </TableCell>
+
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={`rounded-full px-3 py-1 font-semibold ${getStatusBadgeClass(
+                      subscription.status,
                     )}`}
                   >
-                    {formatCategory(subscription.category)}
-                  </span>
-                </div>
-              </TableCell>
+                    {formatBillingCycle(subscription.status)}
+                  </Badge>
+                </TableCell>
 
-              <TableCell className="font-medium text-subly-text-primary">
-                {formatBillingCycle(subscription.billingCycle)}
-              </TableCell>
-
-              <TableCell>
-                <p className="font-semibold text-subly-text-primary">
-                  {formatDate(subscription.nextBillingDate)}
-                </p>
-
-                
-              </TableCell>
-
-              <TableCell>
-                <p className="font-bold text-subly-text-primary">
-                  {formatMoney(
-                    subscription.settledAmount,
-                    baseCurrency,
-                  )}
-                </p>
-
-                <p className="mt-1 text-xs font-medium text-subly-text-secondary">
-                  {formatMoney(
-                    subscription.amount,
-                    subscription.currency,
-                  )}
-                </p>
-              </TableCell>
-
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className={`rounded-full px-3 py-1 font-semibold ${getStatusBadgeClass(
-                    subscription.status,
-                  )}`}
-                >
-                  {formatBillingCycle(subscription.status)}
-                </Badge>
-              </TableCell>
-
-              <TableCell className="pr-6 text-right">
-                <SubscriptionActions subscription={subscription} />
-              </TableCell>
-            </TableRow>
-          ))}
+                <TableCell className="pr-6 text-right">
+                  <SubscriptionActions subscription={subscription} />
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
@@ -171,64 +167,51 @@ function DesktopTable({ subscriptions, baseCurrency }) {
 function MobileList({ subscriptions, baseCurrency }) {
   return (
     <div className="divide-y divide-subly-border rounded-2xl lg:hidden">
-      {subscriptions.map((subscription) => (
-        <div
-          key={subscription.id}
-          className="flex items-start justify-between gap-3 bg-subly-card p-4"
-        >
-          <div className="flex min-w-0 flex-1 gap-3">
-            <SubscriptionLogo subscription={subscription} />
+      {subscriptions.map((subscription) => {
+        const categoryStyle = getCategoryStyle(subscription.category);
+        return (
+          <div
+            key={subscription.id}
+            className="flex items-start justify-between gap-3 bg-subly-card p-4"
+          >
+            <div className="flex min-w-0 flex-1 gap-3">
+              <SubscriptionLogo subscription={subscription} />
 
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold text-subly-text-primary capitalize">
-                {subscription.name}
-              </p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-subly-text-primary capitalize">
+                  {subscription.name}
+                </p>
 
-              <div className="mt-1 flex items-center gap-2">
-                <span
-                  className={`h-2 w-2 rounded-full ${getCategoryDotClass(
-                    subscription.category,
-                  )}`}
-                />
+                <div className="mt-1 flex items-center gap-2">
+                  <span
+                    className={`h-2 w-2 rounded-full ${categoryStyle.dot}`}
+                  />
 
-                <span
-                  className={`text-sm font-medium ${getCategoryTextClass(
-                    subscription.category,
-                  )}`}
-                >
-                  {formatCategory(subscription.category)}
-                </span>
+                  <span className={`text-sm font-medium ${categoryStyle.text}`}>
+                    {formatCategory(subscription.category)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-start gap-2">
+              <div className="text-right">
+                <p className="font-bold text-subly-text-primary">
+                  {formatMoney(subscription.settledAmount, baseCurrency)}
+                </p>
+
+                <p className="mt-1 text-sm font-medium text-subly-text-secondary">
+                  {formatMoney(subscription.amount, subscription.currency)}
+                </p>
               </div>
 
-            
+              <div className="flex flex-col items-center gap-2">
+                <SubscriptionActions subscription={subscription} />
+              </div>
             </div>
           </div>
-
-          <div className="flex shrink-0 items-start gap-2">
-            <div className="text-right">
-              <p className="font-bold text-subly-text-primary">
-                {formatMoney(
-                  subscription.settledAmount,
-                  baseCurrency,
-                )}
-              </p>
-
-              <p className="mt-1 text-sm font-medium text-subly-text-secondary">
-                {formatMoney(
-                  subscription.amount,
-                  subscription.currency,
-                )}
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center gap-2">
-              <SubscriptionActions subscription={subscription} />
-
-          
-            </div>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
