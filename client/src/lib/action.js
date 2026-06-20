@@ -3,12 +3,12 @@ import { RegisterSchemas, LoginSchemas } from "./zodType";
 
 
 export const register = async ({ request }) => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   try {
     const formData = await request.formData();
 
-      const result = Object.fromEntries(formData);
-      const confirmPassword = result.confirmPassword
-
+    const result = Object.fromEntries(formData);
+    const confirmPassword = result.confirmPassword;
 
     console.log(result);
 
@@ -31,9 +31,9 @@ export const register = async ({ request }) => {
         message: "Invalid form input",
       };
     }
-    console.log(confirmPassword)
+    console.log(confirmPassword);
 
-    const response = await fetch("/api/auth/register", {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -42,6 +42,7 @@ export const register = async ({ request }) => {
         ...registerData,
         password,
       }),
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -64,7 +65,8 @@ export const register = async ({ request }) => {
   }
 };
 
-export const login = async ({request}) => {
+export const login = async ({ request }) => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   try {
     const formData = await request.formData();
 
@@ -76,29 +78,30 @@ export const login = async ({request}) => {
     if (!parsedData.success) {
       return {
         errors: parsedData.error.flatten().fieldErrors,
-        message: "Invalid Input"
-      }
+        message: "Invalid Input",
+      };
     }
 
-    const response = await fetch('/api/auth/login', {
-      method: "POST", 
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({email, password})
-    })
+      body: JSON.stringify({ email, password }),
+      credentials: "include",
+    });
 
     const data = await response.json();
     if (!response.ok) {
       return {
-        message: data.message || "Login failed"
-      }
+        message: data.message || "Login failed",
+      };
     }
     console.log(data);
-    return redirect('/dashboard')
+    return redirect("/dashboard");
   } catch (err) {
     console.error(err);
 
     return {
-      message: "Something went wrong"
-    }
+      message: "Something went wrong",
+    };
   }
-}
+};
