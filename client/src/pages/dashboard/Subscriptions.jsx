@@ -14,27 +14,22 @@ const Subscriptions = () => {
   const page = searchParams.get("page") || 1;
   const userData = useRouteLoaderData("dashboard");
   const handlePageChange = (newPage) => {
-    // Update the "page" parameter inside our search params object
+    
     searchParams.set("page", newPage);
 
-    // Push the updated parameters back into the browser's address bar
+    
     setSearchParams(searchParams);
   };
   console.log("User data in Subscriptions:", userData);
 
-  const { data, isLoading } = useQuery({
-    // 1. The query key automatically tracks changes to search or page
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["subscriptions", { search: searchQuery, page }],
 
-    // 2. The query function is properly wrapped in an arrow function
-    // (Also added encodeURIComponent to safely handle spaces/special characters in search)
     queryFn: () =>
       fetchWithAuth(
         `/api/subscription/paginated?search=${encodeURIComponent(searchQuery)}&page=${page}`,
       ).then((res) => res.json()),
 
-    // 3. Pro-Tip: This stops the table from flashing "Loading..."
-    // every time they click 'Next Page' or type a letter.
     placeholderData: keepPreviousData,
   });
 
@@ -61,7 +56,11 @@ const Subscriptions = () => {
       </header>
       <Search />
       {isLoading ? (
-        <SubscriptionTableSkeleton/>
+        <SubscriptionTableSkeleton />
+      ) : isError ? (
+        <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-subly-danger mt-7">
+          {error.message || "Unable to load history."}
+        </p>
       ) : (
         <SubscriptionResponsiveTable
           data={data}
@@ -69,7 +68,11 @@ const Subscriptions = () => {
         />
       )}
       <div className="mt-2">
-        <PaginationList currentPage={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={handlePageChange}/>
+        <PaginationList
+          currentPage={data?.pagination?.currentPage}
+          totalPages={data?.pagination?.totalPages}
+          onPageChange={handlePageChange}
+        />
       </div>
     </section>
   );

@@ -9,8 +9,22 @@ export async function dashboardLoader() {
         return await response.json();
     } catch (err) {
         console.error("Error fetching user data:", err);
-        redirect("/auth/login"); // Redirect to login page if unauthorized or on error
+        return redirect("/auth/login");
    }
+}
+
+export async function adminLoader() {
+  const data = await dashboardLoader();
+
+  if (data instanceof Response) {
+    return data;
+  }
+
+  if (data?.user?.role !== "ADMIN") {
+    return redirect("/dashboard");
+  }
+
+  return data;
 }
 
 export async function authLoader() {
@@ -24,4 +38,3 @@ export async function authLoader() {
     return null;
   }
 }
-

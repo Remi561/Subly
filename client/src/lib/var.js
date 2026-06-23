@@ -4,6 +4,7 @@ import {
   History,
   Bell,
   Settings,
+  ShieldCheck,
 
 } from "lucide-react";
 
@@ -39,6 +40,12 @@ export const navLinks = [
     path: "/dashboard/settings",
     icon: Settings,
   },
+  {
+    label: "Admin",
+    path: "/dashboard/admin",
+    icon: ShieldCheck,
+    adminOnly: true,
+  },
 ];
 
 export const toneStyles = {
@@ -59,6 +66,5 @@ export const toneStyles = {
     dot: "bg-subly-danger",
   },
 };
-
 
 

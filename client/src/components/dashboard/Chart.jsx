@@ -190,6 +190,11 @@ export function SpendingOverviewChart({ chartData, baseCurrency }) {
 }
 
 export function SpendingByCategoryChart({ pieChart, baseCurrency }) {
+  const categoryTotal = Array.isArray(pieChart?.categoryTotal)
+    ? pieChart.categoryTotal
+    : [];
+  const grandTotal = pieChart?.grandTotal ?? 0;
+
   return (
     <Card className="rounded-3xl border-subly-border bg-subly-card shadow-sm">
       <CardHeader>
@@ -220,7 +225,7 @@ export function SpendingByCategoryChart({ pieChart, baseCurrency }) {
               />
 
               <Pie
-                data={pieChart.categoryTotal}
+                data={categoryTotal}
                 dataKey="amount"
                 nameKey="category"
                 innerRadius={65}
@@ -228,7 +233,7 @@ export function SpendingByCategoryChart({ pieChart, baseCurrency }) {
                 paddingAngle={4}
                 strokeWidth={0}
               >
-                {pieChart?.categoryTotal.map((item) => (
+                {categoryTotal.map((item) => (
                   <Cell
                     key={item.category}
                     fill={chartConfig[item.id]?.color || "#888888"}
@@ -243,14 +248,14 @@ export function SpendingByCategoryChart({ pieChart, baseCurrency }) {
               Total
             </p>
             <p className="text-lg font-bold text-subly-text-primary">
-              {formatMoney(pieChart?.grandTotal, baseCurrency)}
+              {formatMoney(grandTotal, baseCurrency)}
             </p>
           </div>
         </div>
 
         <div className="mt-5 space-y-3">
-          {pieChart &&
-            pieChart?.categoryTotal.map((item) => {
+          {categoryTotal.length > 0 ? (
+            categoryTotal.map((item) => {
               return (
                 <div
                   key={item.category}
@@ -277,7 +282,12 @@ export function SpendingByCategoryChart({ pieChart, baseCurrency }) {
                   </div>
                 </div>
               );
-            })}
+            })
+          ) : (
+            <p className="rounded-xl border border-dashed border-subly-border px-4 py-6 text-center text-sm text-subly-text-secondary">
+              No category spending yet.
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

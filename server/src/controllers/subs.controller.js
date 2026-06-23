@@ -380,6 +380,7 @@ export async function editSubscriptionById(req, res, next) {
   try {
     const user = req.user;
     const id = req.params.id;
+    const baseCurrency = user.baseCurrency.toUpperCase();
 
     const parsedId = SubscriptionIdParamSchema.safeParse({ id });
 
@@ -464,8 +465,6 @@ export async function editSubscriptionById(req, res, next) {
       const finalAmount =
         amount !== undefined ? amount : existingSubscription.amount / 100;
 
-      const baseCurrency = user.baseCurrency.toUpperCase();
-
       if (!rates[baseCurrency] || !rates[finalCurrency]) {
         return res.status(400).json({
           message: "Unsupported currency",
@@ -496,11 +495,29 @@ export async function editSubscriptionById(req, res, next) {
       updateData.category = category;
     }
 
-    const updatedSubscription = await prisma.subscription.update({
-      where: {
-        id: existingSubscription.id,
-      },
-      data: updateData,
+    
+
+    const updatedSubscription = await prisma.$transaction(async (tx) => {
+      const subscription = await tx.subscription.update({
+        where: {
+          id: existingSubscription.id,
+        },
+        data: updateData,
+      });
+      await tx.history.create({
+        data: {
+          subscriptionId: subscription.id,
+          subscriptionName: subscription.name,
+          subscriptionLogoUrl: subscription.logoUrl,
+          paidAmount: subscription.amount,
+          paidCurrency: subscription.currency,
+          baseCurrency,
+          exchangeRate: subscription.exchangeRate,
+          type: "EDITED",
+          category: subscription.category,
+          settledAmount: subscription.settledAmount,
+        },
+      });
     });
 
     return res.status(200).json({
@@ -586,6 +603,7 @@ export async function renewSubscription(req, res, next) {
           paidCurrency: currency,
           baseCurrency,
           exchangeRate,
+          type: "RENEWED",
           category: subscription.category,
           settledAmount: settledAmt,
         },
