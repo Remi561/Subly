@@ -44,7 +44,7 @@ const metricCards = [
     key: "admin",
     label: "Total user with admin role",
     icon: Shield,
-    getValue: (stats) => stats?.totalUserByRoles?.ADMIN ?? 0,
+    getValue: (stats) => stats?.users?.totalUserByRoles?.ADMIN ?? 0,
 
     color: "success",
   },
@@ -52,7 +52,7 @@ const metricCards = [
     key: "user",
     label: "Total user with user role",
     icon: Users,
-    getValue: (stats) => stats?.totalUserByRoles?.USER ?? 0,
+    getValue: (stats) => stats?.users?.totalUserByRoles?.USER ?? 0,
 
     color: "danger",
   },
