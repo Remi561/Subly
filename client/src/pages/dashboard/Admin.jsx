@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, Users, CreditCard, History, RefreshCw } from "lucide-react";
+import {
+  ShieldCheck,
+  Users,
+  CreditCard,
+  History,
+  RefreshCw,
+  Shield,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import Breadcrumbs from "@/components/Breadcrumb";
@@ -22,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchWithAuth, formatDate } from "@/lib/utils";
+import { toneStyles } from "@/lib/var";
 
 const metricCards = [
   {
@@ -29,25 +37,49 @@ const metricCards = [
     label: "Total users",
     icon: Users,
     getValue: (stats) => stats?.users?.total ?? 0,
+
+    color: "blue",
+  },
+  {
+    key: "admin",
+    label: "Total user with admin role",
+    icon: Shield,
+    getValue: (stats) => stats?.totalUserByRoles?.ADMIN ?? 0,
+
+    color: "success",
+  },
+  {
+    key: "user",
+    label: "Total user with user role",
+    icon: Users,
+    getValue: (stats) => stats?.totalUserByRoles?.USER ?? 0,
+
+    color: "danger",
   },
   {
     key: "subscriptions",
-    label: "Subscriptions",
+    label: "Total Subscriptions",
     icon: CreditCard,
     getValue: (stats) => stats?.subscriptions?.total ?? 0,
+
+    color: "purple",
   },
   {
     key: "history",
     label: "History records",
     icon: History,
     getValue: (stats) => stats?.history?.total ?? 0,
+    color: "purple",
   },
   {
     key: "currency",
     label: "Rates updated",
     icon: RefreshCw,
     getValue: (stats) =>
-      stats?.currency?.lastUpdated ? formatDate(stats.currency.lastUpdated) : "N/A",
+      stats?.currency?.lastUpdated
+        ? formatDate(stats.currency.lastUpdated)
+        : "N/A",
+    color: "danger",
   },
 ];
 
@@ -56,14 +88,22 @@ function AdminMetricCard({ item, stats }) {
 
   return (
     <Card className="rounded-xl border-subly-border bg-subly-card shadow-sm">
-      <CardContent className="flex items-center gap-4 pt-2">
+      <CardContent className="flex flex-row-reverse justify-between items-center gap-4 pt-2">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-subly-soft-blue text-subly-brand-blue">
           <Icon size={20} />
         </span>
         <div>
-          <p className="text-sm text-subly-text-secondary">{item.label}</p>
-          <p className="mt-1 text-xl font-bold text-subly-text-primary">
+          <p className="text-sm text-subly-text-secondary font-medium capitalize">
+            {item.key}
+          </p>
+          <p className="mt-3 text-3xl font-bold tracking-tight text-subly-text-primary">
             {item.getValue(stats)}
+          </p>
+          <p className="mt-2 flex items-center gap-2 text-xs font-medium text-subly-text-secondary">
+            <span
+              className={`h-2 w-2 rounded-full ${toneStyles[item.color].dot}`}
+            />
+            {item.label}
           </p>
         </div>
       </CardContent>
@@ -184,12 +224,14 @@ export default function Admin() {
                   <TableHead>Name</TableHead>
                   <TableHead>Username</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Roles</TableHead>
                   <TableHead className="text-right">Role actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((user) => {
-                  const pendingUser = roleMutation.variables?.userId === user.id;
+                  const pendingUser =
+                    roleMutation.variables?.userId === user.id;
 
                   return (
                     <TableRow key={user.id}>
@@ -198,6 +240,11 @@ export default function Admin() {
                       </TableCell>
                       <TableCell>{user.username}</TableCell>
                       <TableCell>{user.email}</TableCell>
+                      <TableCell
+                        className={`rounded-md  ${user.role === "ADMIN" ? "text-green-400" : "text-red-400"} `}
+                      >
+                        {user.role}
+                      </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-2">
                           <Button

@@ -14,14 +14,11 @@ const Subscriptions = () => {
   const page = searchParams.get("page") || 1;
   const userData = useRouteLoaderData("dashboard");
   const handlePageChange = (newPage) => {
-    
     searchParams.set("page", newPage);
 
-    
     setSearchParams(searchParams);
   };
-  console.log("User data in Subscriptions:", userData);
-
+  
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["subscriptions", { search: searchQuery, page }],
 

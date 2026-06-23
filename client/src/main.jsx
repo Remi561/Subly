@@ -21,7 +21,7 @@ import NotFound from "./pages/NotFound";
 import { adminLoader, authLoader, dashboardLoader } from "./lib/loader.js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
+import { Analytics } from "@vercel/analytics/react";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -90,6 +90,7 @@ createRoot(document.getElementById("root")).render(
       <RouterProvider router={router} />
 
       <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
+      <Analytics />
     </QueryClientProvider>
   </StrictMode>,
 );

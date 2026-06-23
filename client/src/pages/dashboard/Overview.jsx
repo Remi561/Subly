@@ -16,19 +16,18 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/utils";
 import { SubscriptionTableSkeleton } from "@/components/dashboard/Skeleton";
 const Overview = () => {
-  const data = useRouteLoaderData("dashboard")
-  
+  const data = useRouteLoaderData("dashboard");
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ["subscriptions", "info"],
-    queryFn: () => fetchWithAuth("/api/subscription/info").then(res => res.json()),
-    
+    queryFn: () =>
+      fetchWithAuth("/api/subscription/info").then((res) => res.json()),
   });
 
-  const { data: rawData, isLoading:subsLoading  } = useQuery({
-    queryKey: ['subscription'],
-    queryFn: ()=> fetchWithAuth('/api/subscription').then(res => res.json())
-  })
+  const { data: rawData, isLoading: subsLoading } = useQuery({
+    queryKey: ["subscription"],
+    queryFn: () => fetchWithAuth("/api/subscription").then((res) => res.json()),
+  });
 
   const { data: chartData, isLoading: chartDataLoading } = useQuery({
     queryKey: ["chart", "line chart"],
@@ -41,11 +40,6 @@ const Overview = () => {
     queryFn: () =>
       fetchWithAuth("/api/subscription/categories").then((res) => res.json()),
   });
-  console.log(pieChart);
-
-
-
-  console.log(rawData)
 
   return (
     <section>

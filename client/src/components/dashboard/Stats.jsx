@@ -23,7 +23,7 @@ const toneStyles = {
 
 export function StatCard({ stat , baseCurrency }) {
   
-  console.log("StatCard received stat:", stat);
+
 
   return (
     <>

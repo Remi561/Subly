@@ -49,7 +49,7 @@ const AddForm = ({ rates, isError, mutation }) => {
       name: "",
       amount: undefined,
       currency: "",
-      duration: "",
+      billingCycle: "",
       category: "",
     },
   });
@@ -65,7 +65,9 @@ const AddForm = ({ rates, isError, mutation }) => {
     // We swap React Router's <Form> action logic for RHF's handleSubmit
     <form onSubmit={handleSubmit(onSubmit)}>
       {mutation.isError && (
-        <p className="mb-4 text-sm text-red-500 bg-red-200 p-2 rounded-md">{mutation.error.message}</p>
+        <p className="mb-4 text-sm text-red-500 bg-red-200 p-2 rounded-md">
+          {mutation.error.message}
+        </p>
       )}
       <FieldSet>
         <FieldGroup>

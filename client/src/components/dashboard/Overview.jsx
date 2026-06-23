@@ -232,7 +232,7 @@ export function OverviewTable({ subscriptions, baseCurrency }) {
   // ensure we always have an array to pass down to Desktop/Mobile
 
 
-  console.log(subscriptions);
+
   return (
     <Card className="rounded-3xl border-subly-border bg-subly-card shadow-sm mt-6">
      
