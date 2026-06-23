@@ -7,7 +7,7 @@ export function cn(...inputs) {
 }
 
 export function getApiBaseUrl() {
-  return import.meta.env.VITE_API_URL || "http://localhost:3000";
+  return import.meta.env.VITE_API_URL;
 }
 
 export function formatMoney(amountInMinorUnit, currency) {

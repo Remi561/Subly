@@ -4,6 +4,7 @@ export async function getAdminStats(req, res, next) {
   try {
     const [
       totalUsers,
+      totalRoleUser,
       totalSubscriptions,
       subscriptionsByStatus,
       subscriptionsByCategory,
@@ -11,6 +12,13 @@ export async function getAdminStats(req, res, next) {
       latestRates,
     ] = await prisma.$transaction([
       prisma.user.count(),
+
+      prisma.user.groupBy({
+        by: ["role"],
+        _count: {
+          id: true,
+        },
+      }),
 
       prisma.subscription.count(),
 
@@ -48,8 +56,17 @@ export async function getAdminStats(req, res, next) {
       CANCELLED: 0,
     };
 
+    const roleCounts = {
+      ADMIN: 0,
+      USER: 0,
+    };
+
     subscriptionsByStatus.forEach((item) => {
       statusCounts[item.status] = item._count.id;
+    });
+
+    totalRoleUser.forEach((item) => {
+      roleCounts[item.role] = item._count.id;
     });
 
     const categoryCounts = subscriptionsByCategory.map((item) => ({
@@ -62,6 +79,7 @@ export async function getAdminStats(req, res, next) {
       stats: {
         users: {
           total: totalUsers,
+          totalUserByRoles: roleCounts,
         },
 
         subscriptions: {
@@ -88,17 +106,17 @@ export async function getAdminStats(req, res, next) {
 export async function getAllUsers(req, res, next) {
     try {
         const users = await prisma.user.findMany({
-            orderBy: {
-                createdAt: "desc"
-            },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                username: true,
-                
-            }
-        })
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            username: true,
+            role: true,
+          },
+        });
 
         if (!users) {
             return res.status(404).json({message: 'No user found'})
@@ -200,7 +218,7 @@ export async function demoteUser(req, res, next) {
         },
       });
 
-      return res.json({ message: "User is successfully promoted" });
+      return res.json({ message: "User is successfully demoted" });
     } catch (error) {
         console.error(error)
       next(error);

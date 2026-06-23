@@ -26,7 +26,7 @@ import { Spinner } from "../ui/spinner";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
-  // z.coerce.number() safely turns the string input into a real decimal
+
   amount: z.coerce.number().positive("Amount must be greater than 0."),
   currency: z.string().min(1, "Please select a currency."),
   billingCycle: z.string().min(1, "Please select a duration."),
@@ -34,10 +34,9 @@ const formSchema = z.object({
 });
 
 const AddForm = ({ rates, isError, mutation }) => {
-  // CRITICAL: Fallback to an empty object if rates is null/undefined to prevent crashing
+  
   const currencyLists = Object.keys(rates || {});
 
-  // 2. Initialize React Hook Form
   const {
     register,
     handleSubmit,
@@ -49,23 +48,24 @@ const AddForm = ({ rates, isError, mutation }) => {
       name: "",
       amount: undefined,
       currency: "",
-      duration: "",
+      billingCycle: "",
       category: "",
     },
   });
 
-  // 3. The Submit Handler (Only runs if Zod validation passes!)
+  
   const onSubmit = (values) => {
     console.log("Validated Data ready for TanStack Mutation:", values);
-      // mutation.mutate(values) goes here
-      mutation.mutate(values)
+
+    mutation.mutate(values);
   };
 
   return (
-    // We swap React Router's <Form> action logic for RHF's handleSubmit
     <form onSubmit={handleSubmit(onSubmit)}>
       {mutation.isError && (
-        <p className="mb-4 text-sm text-red-500 bg-red-200 p-2 rounded-md">{mutation.error.message}</p>
+        <p className="mb-4 text-sm text-red-500 bg-red-200 p-2 rounded-md">
+          {mutation.error.message}
+        </p>
       )}
       <FieldSet>
         <FieldGroup>
@@ -76,7 +76,7 @@ const AddForm = ({ rates, isError, mutation }) => {
               id="name"
               placeholder="e.g. Netflix"
               className="py-5"
-              {...register("name")} // Connect to RHF
+              {...register("name")}
             />
             {errors.name && <FieldError>{errors.name.message}</FieldError>}
           </Field>
@@ -91,7 +91,7 @@ const AddForm = ({ rates, isError, mutation }) => {
                 step="0.01"
                 placeholder="e.g. 9.99"
                 className="py-5"
-                {...register("amount")} // Connect to RHF
+                {...register("amount")}
               />
               {errors.amount && (
                 <FieldError>{errors.amount.message}</FieldError>
@@ -112,7 +112,6 @@ const AddForm = ({ rates, isError, mutation }) => {
                     <SelectContent>
                       <SelectGroup>
                         {currencyLists.map((list) => (
-                          // Added the required React 'key' prop here!
                           <SelectItem key={list} value={list}>
                             {list}
                           </SelectItem>
