@@ -1,16 +1,15 @@
 import { redirect } from "react-router";
 import { RegisterSchemas, LoginSchemas } from "./zodType";
+import { getApiBaseUrl } from "./utils";
 
 
 export const register = async ({ request }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const API_BASE_URL = getApiBaseUrl();
   try {
     const formData = await request.formData();
 
     const result = Object.fromEntries(formData);
     const confirmPassword = result.confirmPassword;
-
-    console.log(result);
 
     const parsedData = RegisterSchemas.safeParse(result);
 
@@ -31,8 +30,6 @@ export const register = async ({ request }) => {
         message: "Invalid form input",
       };
     }
-    console.log(confirmPassword);
-
     const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: "POST",
       headers: {
@@ -53,9 +50,7 @@ export const register = async ({ request }) => {
       };
     }
 
-    console.log(data);
-
-    return redirect("/auth/login");
+    return redirect("/dashboard");
   } catch (err) {
     console.error(err);
 
@@ -66,7 +61,7 @@ export const register = async ({ request }) => {
 };
 
 export const login = async ({ request }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const API_BASE_URL = getApiBaseUrl();
   try {
     const formData = await request.formData();
 
@@ -95,7 +90,6 @@ export const login = async ({ request }) => {
         message: data.message || "Login failed",
       };
     }
-    console.log(data);
     return redirect("/dashboard");
   } catch (err) {
     console.error(err);

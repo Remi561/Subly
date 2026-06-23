@@ -1,4 +1,4 @@
-import { NavLink} from "react-router";
+import { NavLink, useRouteLoaderData } from "react-router";
 import { navLinks } from "../lib/var";
 import SublyLogo from "./SublyLogo";
 
@@ -40,6 +40,11 @@ function SidebarLink({ item }) {
   );
 }
 export function Sidebar() {
+  const data = useRouteLoaderData("dashboard");
+  const visibleLinks = navLinks.filter(
+    (item) => !item.adminOnly || data?.user?.role === "ADMIN",
+  );
+
   return (
     <aside className="fixed left-0 top-0 hidden h-screen w-72 border-r border-subly-border bg-subly-card px-5 py-6 lg:block">
       <div className="mb-10">
@@ -47,7 +52,7 @@ export function Sidebar() {
       </div>
 
       <nav className="space-y-2">
-        {navLinks.map((item) => (
+        {visibleLinks.map((item) => (
           <SidebarLink key={item.path} item={item} />
         ))}
       </nav>
@@ -64,4 +69,3 @@ export function Sidebar() {
     </aside>
   );
 }
-

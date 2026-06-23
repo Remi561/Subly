@@ -10,13 +10,15 @@ import Overview from "./pages/dashboard/Overview.jsx";
 import Settings from "./pages/dashboard/Settings.jsx";
 import Notification from "./pages/dashboard/Notification.jsx";
 import History from "./pages/dashboard/History.jsx";
+import Admin from "./pages/dashboard/Admin.jsx";
 import Subscriptions from "./pages/dashboard/Subscriptions.jsx";
 import Dashboard from "./layout/Dashboard.jsx";
 import Add from "./pages/dashboard/subscription/Add";
 import Edit from "./pages/dashboard/subscription/Edit";
 import Error from "./pages/Error";
+import NotFound from "./pages/NotFound";
 
-import { authLoader, dashboardLoader } from "./lib/loader.js";
+import { adminLoader, authLoader, dashboardLoader } from "./lib/loader.js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -71,8 +73,14 @@ const router = createBrowserRouter([
       { path: "subscriptions/:id/edit", element: <Edit /> },
       { path: "notifications", element: <Notification /> },
       { path: "history", element: <History /> },
+      { path: "admin", element: <Admin />, loader: adminLoader },
       { path: "settings", element: <Settings /> },
+      { path: "*", element: <NotFound /> },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 

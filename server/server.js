@@ -23,10 +23,21 @@ const app = express()
 
 
 
-const allowedOrigins = [
-  "http://localhost:5173", // Your local Vite development server
-  "https://subly-chi.vercel.app", // ⚠️ REPLACE WITH YOUR ACTUAL VERCEL URL
-];
+const normalizeOrigin = (origin) => origin?.trim().replace(/\/$/, "");
+
+const configuredOrigins = [
+  env.CLIENT_URL,
+  ...(env.CORS_ORIGINS ? env.CORS_ORIGINS.split(",") : []),
+]
+  .map(normalizeOrigin)
+  .filter(Boolean);
+
+const allowedOrigins = new Set([
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+
+  ...configuredOrigins,
+]);
 
 app.use(
   cors({
@@ -34,12 +45,14 @@ app.use(
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg =
-          "The CORS policy for this site does not allow access from the specified Origin.";
+      const normalizedOrigin = normalizeOrigin(origin);
+
+      if (!allowedOrigins.has(normalizedOrigin)) {
+        const msg = `CORS blocked origin: ${origin}. Add it to CLIENT_URL or CORS_ORIGINS.`;
         return callback(new Error(msg), false);
       }
-      return callback(null, true);
+
+      return callback(null, normalizedOrigin);
     },
     credentials: true, // Crucial if you are passing JWT cookies back and forth!
   }),

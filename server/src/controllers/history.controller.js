@@ -1,77 +1,112 @@
 import { prisma } from "../libs/prisma.js";
+
+const HISTORY_TYPES = new Set(["CREATED", "EDITED", "RENEWED"]);
+const HISTORY_CATEGORIES = new Set([
+  "ENTERTAINMENT",
+  "PRODUCTIVITY",
+  "SOFTWARE",
+  "STORAGE",
+  "EDUCATION",
+  "AI_TOOLS",
+  "OTHER",
+]);
+
 export async function getFilteredHistory(req, res, next) {
+  try {
+    const { category, type, range } = req.query;
+    const search = req.query.search || req.query.query;
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+    const userId = req.user.id;
 
-    
-    try {
-        const { query, category, type, range } = req.query
-        const page = parseInt(req.query.page) || 1
-        const userId = req.user.id;
+    const whereClause = {
+      subscription: {
+        userId,
+      },
+    };
 
-        const ITEMS_PER_PAGE = 10
+    const normalizedType = type ? String(type).toUpperCase() : null;
+    const normalizedCategory = category ? String(category).toUpperCase() : null;
 
-        const whereClause = { userId }
-        
-        if (type && type !== "ALL") {
-            whereClause.type = type
-        }
+    if (normalizedType && normalizedType !== "ALL") {
 
-        if (category && category !== "ALL") {
-            whereClause.category = category
-        }
-        if (range) {
-          const dateThreshold = new Date();
+      if (!HISTORY_TYPES.has(normalizedType)) {
+        return res.status(400).json({ message: "Invalid history type" });
+      }
 
-          if (range === "7days") {
-            dateThreshold.setDate(dateThreshold.getDate() - 7);
-          } else if (range === "30days") {
-            dateThreshold.setDate(dateThreshold.getDate() - 30);
-          } else if (range === "12months") {
-            dateThreshold.setMonth(dateThreshold.getMonth() - 12);
-          }
-
-          // Add the date boundary condition to our where clause
-          whereClause.createdAt = { gte: dateThreshold };
-        }
-
-        if (query && query.trim() !== '') {
-            whereClause.OR = [
-                {
-                    subscriptionName: {
-                        contains: query,
-                        mode: "insensitive",
-                    },
-                }
-            ]
-        }
-
-        const [historyLogs, totalRecords] = await prisma.$transaction([
-            
-            prisma.history.findMany({
-              where: whereClause,
-              orderBy: { createdAt: "desc" }, 
-              skip: (page - 1) * ITEMS_PER_PAGE,
-              take: ITEMS_PER_PAGE,
-            }),
-            
-            prisma.history.count({
-              where: whereClause,
-            }),
-          ]);
-      
-    
-          const totalPages = Math.ceil(totalRecords / ITEMS_PER_PAGE);
-      
-
-        return res.status(200).json({
-            history: historyLogs,
-            meta: {
-                currentPage: page,
-                totalPages: totalPages || 1, 
-                totalRecords,
-            },
-        })
-
-    } catch (err) {
-        next(err)
+      whereClause.type = normalizedType;
     }
+
+    if (normalizedCategory && normalizedCategory !== "ALL") {
+      if (!HISTORY_CATEGORIES.has(normalizedCategory)) {
+        return res.status(400).json({ message: "Invalid history category" });
+      }
+
+      whereClause.category = normalizedCategory;
+    }
+
+    if (range && range !== "ALL") {
+      const normalizedRange = String(range).toLowerCase().replace(/[\s_-]/g, "");
+      const dateThreshold = new Date();
+
+      if (["7d", "last7d", "7days", "last7days"].includes(normalizedRange)) {
+        dateThreshold.setDate(dateThreshold.getDate() - 7);
+        whereClause.paidAt = { gte: dateThreshold };
+      }
+
+      if (
+        ["30d", "last30d", "30days", "last30days"].includes(normalizedRange)
+      ) {
+        dateThreshold.setDate(dateThreshold.getDate() - 30);
+        whereClause.paidAt = { gte: dateThreshold };
+      }
+
+      if (
+        ["12m", "last12m", "12months", "last12months"].includes(
+          normalizedRange,
+        )
+      ) {
+        dateThreshold.setMonth(dateThreshold.getMonth() - 12);
+        whereClause.paidAt = { gte: dateThreshold };
+      }
+    }
+
+    if (search && search.trim() !== "") {
+      whereClause.OR = [
+        {
+          subscriptionName: {
+            contains: search.trim(),
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    const [historyLogs, totalRecords] = await prisma.$transaction([
+      prisma.history.findMany({
+        where: whereClause,
+        orderBy: { paidAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+
+      prisma.history.count({
+        where: whereClause,
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    return res.status(200).json({
+      history: historyLogs,
+      meta: {
+        currentPage: page,
+        totalPages: totalPages || 1,
+        totalRecords,
+        limit,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
 }

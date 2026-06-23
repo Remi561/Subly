@@ -6,6 +6,10 @@ export function cn(...inputs) {
   return twMerge(clsx(...inputs));
 }
 
+export function getApiBaseUrl() {
+  return import.meta.env.VITE_API_URL || "http://localhost:3000";
+}
+
 export function formatMoney(amountInMinorUnit, currency) {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
@@ -141,7 +145,7 @@ async function extractErrorMessage(response) {
 let refreshPromise = null;
 
 export async function fetchWithAuth(url, options = {}) {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const API_BASE_URL = getApiBaseUrl();
   try {
     let response = await fetch(`${API_BASE_URL}${url}`, {
       ...options,
