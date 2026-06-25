@@ -24,6 +24,10 @@ model User {
   role Role @default(USER)
   
   subscriptions Subscription[]
+  notifications Notification[]
+
+  reminderDaysBefore Int       @default(3)
+  emailNofiticationEnabled Boolean @default(true)
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,10 +53,9 @@ model Subscription {
   status Status @default(ACTIVE)
   nextBillingDate DateTime
 
-  reminderEnabled    Boolean   @default(true)
-  reminderDaysBefore Int       @default(3)
+
   reminderSent       Boolean   @default(false)
-  reminderSentAt     DateTime?
+ 
 
   expiredEmailSent   Boolean   @default(false)
   expiredEmailSentAt DateTime?
@@ -99,6 +102,18 @@ model History {
 
 }
 
+model Notification{
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title String
+  message String
+
+
+  createdAt DateTime @default(now())
+}
+
 
 model Rates{
   id String @id @default(cuid())
@@ -140,3 +155,4 @@ enum Type {
   RENEWED
 
 }
+
