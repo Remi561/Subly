@@ -15,6 +15,7 @@ import { refreshRouter } from "./src/routes/refresh.route.js";
 import { currencyRouters } from "./src/routes/rate.route.js";
 import { historyRouter } from "./src/routes/history.route.js";
 import cors from "cors";
+import { notificationRouter } from "./src/routes/notification.route.js";
 
 
 
@@ -71,6 +72,7 @@ app.use("/api/refresh", apiLimiter, refreshRouter);
 app.use("/api/subscription", requireAuth, subscriptionRouter);
 app.use("/api/history", requireAuth, historyRouter);
 app.use("/api/admin", apiLimiter, requireAuth, requireRole, adminRouter);
+app.use("/api/notification", requireAuth, notificationRouter);
 
 app.use((err, req, res, next) => {
   if (err) {
