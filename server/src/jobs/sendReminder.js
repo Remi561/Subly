@@ -1,7 +1,7 @@
 import { prisma } from "../libs/prisma.js";
 import { sendReminderEmail } from "../services/email.service.js";
 
-async function sendReminder() {
+export async function sendReminder() {
   const users = await prisma.user.findMany({
     where: {
       emailNofiticationEnabled: true,
@@ -23,8 +23,6 @@ async function sendReminder() {
     const dueSubscription = user.subscriptions.filter(
       (sub) => !sub.reminderDaysBefore && sub.nextBillingDate <= reminderDate,
     );
-      
-      
 
     if (!dueSubscription.length) continue;
 
@@ -34,16 +32,11 @@ async function sendReminder() {
 
     await prisma.notification.create({
       data: {
-            userId: user.id,
-            title: "Subscriptions about to be renewed",
-            message: `${dueSubscription.length} of your subscription is about to expire`,
+        userId: user.id,
+        title: "Subscriptions about to be renewed",
+        message: `${dueSubscription.length} of your subscription is about to expire`,
       },
     });
   }
 }
 
-sendReminder()
-    .catch(console.error)
-    .finally(async () => {
-        await prisma.$disconnect()
-    })

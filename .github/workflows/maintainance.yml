@@ -1,0 +1,16 @@
+name: Daily Maintenance
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call maintenance endpoint
+        run: |
+          curl -X POST \
+          https://subly-backend-iuej.onrender.com/api/jobs/maintenance \
+          -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
