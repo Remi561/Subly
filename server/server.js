@@ -16,7 +16,7 @@ import { currencyRouters } from "./src/routes/rate.route.js";
 import { historyRouter } from "./src/routes/history.route.js";
 import cors from "cors";
 import { notificationRouter } from "./src/routes/notification.route.js";
-import { jobsMaintainanceRouter } from "./src/routes/maintainance.route.js";
+import { jobsMaintenanceRouter } from "./src/routes/maintenance.route.js";
 
 
 
@@ -68,7 +68,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/me", requireAuth, meRouter);
-app.use("/api/jobs", jobsMaintainanceRouter);
+app.use("/api/jobs", jobsMaintenanceRouter);
 app.use("/api/rate", currencyRouters);
 app.use("/api/refresh", apiLimiter, refreshRouter);
 app.use("/api/subscription", requireAuth, subscriptionRouter);
