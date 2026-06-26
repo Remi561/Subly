@@ -16,6 +16,3 @@ export async function sendExpired() {
   });
 }
 
-sendExpired().catch(console.error).finally(async () => {
-    await prisma.$disconnect()
-})

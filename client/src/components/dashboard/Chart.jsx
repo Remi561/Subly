@@ -60,8 +60,8 @@ const chartConfig = {
     label: "Entertainment",
     color: "var(--color-subly-brand-blue)",
   },
-  AI_TOOLS: { label: "AI Tools", color: "var(--color-ai)" },
-  STORAGE: { label: "Storage", color: "var(--color-storage)" },
+  AI_TOOLS: { label: "Ai Tools", color: "var(--color-subly-success)" },
+  STORAGE: { label: "Storage", color: "var(--color-subly-warning)" },
   PRODUCTIVITY: {
     label: "Productivity",
     color: "var(--color-subly-brand-purple)",
