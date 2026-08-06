@@ -1,6 +1,7 @@
 import { id } from "zod/v4/locales";
+import  {Request, Response, NextFunction} from 'express'
 
-export async function getMe(req, res, next) {
+export async function getMe(req: Request, res: Response, next: NextFunction) {
   const accessToken = req.cookies.accessToken;
 
   if (!accessToken) {
@@ -17,6 +18,7 @@ export async function getMe(req, res, next) {
 
         return res.json({message: "User information retrieved successfully", user:{username: user.username, id:user.id, role: user.role, baseCurrency: user.baseCurrency} });
     } catch (err) {
+        console.error(`Me error: ${err}`)
         next(err);
      }
 }

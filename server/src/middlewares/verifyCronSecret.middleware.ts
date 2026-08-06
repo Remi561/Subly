@@ -1,5 +1,6 @@
 import { env } from "../config/env.js";
-export function verifyCronSecret(req, res, next) {
+import {Request, Response, NextFunction} from 'express'
+export function verifyCronSecret(req: Request, res: Response, next:NextFunction) {
   const secret = req.headers["x-cron-secret"];
 
   if (!secret) {

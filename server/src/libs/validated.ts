@@ -48,7 +48,7 @@ const currencySchema = z
 
 const amountSchema = z.coerce
   .number({
-    invalid_type_error: "Amount must be a number",
+    error: "Amount must be a number",
   })
   .positive("Amount must be greater than 0")
   .max(9999999999.99, "Amount is too large");
@@ -78,12 +78,7 @@ export const CreateSubscriptionSchema = z.object({
     .min(2, "Subscription name must be at least 2 characters")
     .max(50, "Subscription name must not exceed 50 characters"),
 
-  logoUrl: z
-    .string()
-    .trim()
-    .url("Logo must be a valid URL")
-    .optional()
-    .or(z.literal("")),
+
 
   amount: amountSchema,
 
@@ -91,14 +86,7 @@ export const CreateSubscriptionSchema = z.object({
 
   billingCycle: billingCycleSchema.default("MONTHLY"),
 
-  nextBillingDate: z.coerce
-    .date({
-      invalid_type_error: "Next billing date must be a valid date",
-    })
-    .refine((date) => date > new Date(), {
-      message: "Next billing date must be in the future",
-    })
-    .optional(),
+  
 
   category: categorySchema.default("OTHER").optional(),
 });
@@ -112,12 +100,8 @@ export const UpdateSubscriptionSchema = z
       .max(50, "Subscription name must not exceed 50 characters")
       .optional(),
 
-    logoUrl: z
-      .string()
-      .trim()
-      .url("Logo must be a valid URL")
-      .optional()
-      .or(z.literal("")),
+    
+  
 
     amount: amountSchema.optional(),
 
@@ -127,11 +111,7 @@ export const UpdateSubscriptionSchema = z
 
     status: statusSchema.optional(),
 
-    nextBillingDate: z.coerce
-      .date({
-        invalid_type_error: "Next billing date must be a valid date",
-      })
-      .optional(),
+    
 
     category: categorySchema.optional(),
   })

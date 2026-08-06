@@ -1,9 +1,12 @@
+
 import { Resend } from "resend";
 import { env } from "../config/env.js";
+import { SubscriptionCreateInput } from "../generated/prisma/models.js";
+import { User } from "../generated/prisma/client.js";
 const resend = new Resend(env.RESEND_API_KEY)
 
-export async function sendReminderEmail(user, subscriptions) {
-    const items = subscriptions.map(sub => `<li>${sub.name} - ${sub.nextBillingDate}</li>`).join('')
+export async function sendReminderEmail(user: any, subscriptions): Promise<void> {
+    const items = subscriptions.map(sub => `<li>${sub.name} on ${sub.nextBillingDate}</li>`).join('')
 
     await resend.emails.send({
       from: "Subly <onboarding@resend.dev>",
@@ -20,15 +23,17 @@ export async function sendReminderEmail(user, subscriptions) {
             ${items}
           </ul>
     
-          <p>
+          <button>
             Open Subly to manage your subscriptions.
-          </p>
+          </button>
+
+          
         `,
     });
 
 }
 
-export async function sendExpired(user, subscriptions) {
+export async function sendExpired(user: Record<string, string>, subscriptions: SubscriptionCreateInput[]): Promise<void> {
     const items = subscriptions.map(sub => `<li>${sub.name} - ${sub.nextBillingDate}</li>`).join('')
 
     await resend.emails.send({

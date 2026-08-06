@@ -7,7 +7,7 @@ export async function sendReminder() {
       emailNofiticationEnabled: true,
     },
     include: {
-      subscriptions: {
+      subscriptionRecords: {
         where: {
           status: "ACTIVE",
         },
@@ -20,21 +20,38 @@ export async function sendReminder() {
 
     reminderDate.setDate(reminderDate.getDate() + user.reminderDaysBefore);
 
-    const dueSubscription = user.subscriptions.filter(
-      (sub) => !sub.reminderDaysBefore && sub.nextBillingDate <= reminderDate,
+    const dueSubscription = user.subscriptionRecords.filter(
+      (sub) => !sub.reminderSent && sub.nextBillingDate <= reminderDate,
     );
 
     if (!dueSubscription.length) continue;
 
     await sendReminderEmail(user, dueSubscription);
 
+    const dueSubscriptionIds = dueSubscription.map(sub => sub.id)
+
+
+
+
     //creating notification
+
+    await prisma.subscription.updateMany({
+      where: {
+        id: {
+          in: dueSubscriptionIds
+        },
+      
+      },
+      data: {
+        reminderSent: true
+      }
+    })
 
     await prisma.notification.create({
       data: {
         userId: user.id,
         title: "Subscriptions about to be renewed",
-        message: `${dueSubscription.length} of your subscription is about to expire`,
+        message: `${dueSubscription.length} of your ${dueSubscription.length > 1 ? "subscriptions": "subscription"} is about to expire`,
       },
     });
   }

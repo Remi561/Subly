@@ -1,11 +1,11 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "server.ts",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.ts",
     "build": "npm install && npx prisma generate",
-    "dev": "nodemon server.js"
+    "dev": "tsx watch server.ts"
   },
   "type": "module",
   "keywords": [],
@@ -30,11 +30,12 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.9.1",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.9.5",
     "@types/pg": "^8.20.0",
     "nodemon": "^3.1.14",
     "prisma": "^7.8.0",
-    "tsx": "^4.22.3",
+    "tsx": "^4.23.1",
     "typescript": "^6.0.3"
   }
 }

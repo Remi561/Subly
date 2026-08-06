@@ -1,6 +1,13 @@
 import { prisma } from "../libs/prisma.js"
+import {Response, Request, NextFunction, } from 'express'
 import { SubscriptionIdParamSchema } from "../libs/validated.js";
-export async function getAdminStats(req, res, next) {
+import { Categorys, StatusResult, TotalRole} from '../types/global.js'
+import { Role, Status } from "../generated/prisma/enums.js";
+
+
+
+
+export async function getAdminStats(req: Request, res: Response, next: NextFunction) {
   try {
     const [
       totalUsers,
@@ -49,27 +56,27 @@ export async function getAdminStats(req, res, next) {
       }),
     ]);
 
-    const statusCounts = {
+    const statusCounts: Record<Status, number> = {
       ACTIVE: 0,
       EXPIRED: 0,
       ARCHIVED: 0,
-      CANCELLED: 0,
+      CANCELLED: 0
     };
 
-    const roleCounts = {
+    const roleCounts: Record<Role, number> = {
       ADMIN: 0,
       USER: 0,
     };
 
-    subscriptionsByStatus.forEach((item) => {
+    subscriptionsByStatus.forEach((item: StatusResult) => {
       statusCounts[item.status] = item._count.id;
     });
 
-    totalRoleUser.forEach((item) => {
+    totalRoleUser.forEach((item: TotalRole) => {
       roleCounts[item.role] = item._count.id;
     });
 
-    const categoryCounts = subscriptionsByCategory.map((item) => ({
+    const categoryCounts = subscriptionsByCategory.map((item: Categorys) => ({
       category: item.category,
       count: item._count.id,
     }));
@@ -103,7 +110,7 @@ export async function getAdminStats(req, res, next) {
   }
 }
 
-export async function getAllUsers(req, res, next) {
+export async function getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
         const users = await prisma.user.findMany({
           orderBy: {
@@ -128,9 +135,9 @@ export async function getAllUsers(req, res, next) {
     }
 }
 
-export async function promoteUser(req, res, next) {
+export async function promoteUser(req: Request, res: Response, next: NextFunction) {
     try {
-        const id = req.params.id
+        const id = req.params.id;
         const parsedId = SubscriptionIdParamSchema.safeParse({ id })
         
         if (!parsedId.success) {
@@ -174,7 +181,7 @@ export async function promoteUser(req, res, next) {
 
 }
 
-export async function demoteUser(req, res, next) {
+export async function demoteUser(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id;
       const parsedId = SubscriptionIdParamSchema.safeParse({ id });

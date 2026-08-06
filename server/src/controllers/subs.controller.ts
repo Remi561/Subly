@@ -7,12 +7,16 @@ import {
 import { prisma } from "../libs/prisma.js";
 import {
   generatedSettledAmt,
-  getLogo,
+  getLink,
   getNextBillingDate,
 } from "../libs/utils.js";
 
+import { Request, Response, NextFunction } from "express";
+import {Prisma} from '../generated/prisma/client.js'
+import { Rate } from "../types/global.js";
+
 // GET request
-export async function getSubscriptions(req, res, next) {
+export async function getSubscriptions(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
     const data = await prisma.subscription.findMany({
@@ -26,14 +30,15 @@ export async function getSubscriptions(req, res, next) {
     }
     return res.json({ success: true, message: "Subscription found", data });
   } catch (err) {
+    console.error(`Error getting subscriptions: ${err}`);
     next(err);
     // return res.status(500).json({success: false,message:"something went wrong" })
   }
 }
-export async function getSubscriptionById(req, res, next) {
+export async function getSubscriptionById(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
-    const id = req.params.id;
+    const id = req.params.id as string;
 
     const subscription = await prisma.subscription.findFirst({
       where: {
@@ -47,18 +52,19 @@ export async function getSubscriptionById(req, res, next) {
     }
     return res.json({ message: "subscription found", data: subscription });
   } catch (err) {
+    console.error(`Error getting subscription by id: ${err}`);
     next(err);
   }
 }
-export async function getPaginatedSubscription(req, res, next) {
+export async function getPaginatedSubscription(req: Request, res: Response, next: NextFunction) {
   try {
-    const currentPage = parseInt(req.query.page) || 1;
-    const search = req.query.search;
+    const currentPage = parseInt(req.query.page as string) || 1;
+    const search = req.query.search as string;
     const itemsPerPage = 10;
     const user = req.user;
 
     // 1. Build the base query (always filter by the logged-in user)
-    const whereClause = {
+    const whereClause: { userId: string, OR?:[{ name: { contains: string, mode: "insensitive" } }] } = {
       userId: user.id,
     };
 
@@ -96,11 +102,12 @@ export async function getPaginatedSubscription(req, res, next) {
       },
     });
   } catch (err) {
+    console.error(`Error getting paginated subscriptions: ${err}`);
     next(err);
   }
 }
 
-export async function getSubscriptionsInfo(req, res, next) {
+export async function getSubscriptionsInfo(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
 
@@ -133,11 +140,12 @@ export async function getSubscriptionsInfo(req, res, next) {
       totalSubs,
     });
   } catch (err) {
+    console.error(`Error getting subscriptions info: ${err}`);
     next(err);
   }
 }
 
-export async function getSubscriptionExpenses(req, res, next) {
+export async function getSubscriptionExpenses(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user.id;
     const sixMonthsAgo = new Date();
@@ -188,12 +196,13 @@ export async function getSubscriptionExpenses(req, res, next) {
 
     return res.status(200).json(formattedChartData);
   } catch (error) {
+    console.error(`Error getting subscription expenses: ${error}`);
     next(error);
   }
 }
 
 
-export async function getSpendingByCategory(req, res, next) {
+export async function getSpendingByCategory(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user.id;
     // 1. Group subscriptions by category and sum up the settled amounts
@@ -237,13 +246,14 @@ export async function getSpendingByCategory(req, res, next) {
       .status(200)
       .json({ grandTotal, categoryTotal: formattedPieData });
   } catch (error) {
+    console.error(`Error getting spending by category: ${error}`);
     next(error);
   }
 }
 
 // POST, PATCH, DELETE request
 
-export async function createSubscriptions(req, res, next) {
+export async function createSubscriptions(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
     const parsedBody = CreateSubscriptionSchema.safeParse(req.body);
@@ -278,15 +288,15 @@ export async function createSubscriptions(req, res, next) {
     });
 
     if (!currencies) {
-      return res.status(500).json({ message: "Currency rate not available" });
+      return res.status(404).json({ message: "Currency rate not available" });
     }
-    const rates = currencies.rates;
-    const baseCurrency = user.baseCurrency;
+    const rates = currencies.rates as Record<string, number>;
+    const baseCurrency: string = user.baseCurrency;
     if (!rates[currency] || !rates[baseCurrency]) {
       return res.status(400).json({ message: "Currency not supported" });
     }
 
-    const logoUrl = await getLogo(name);
+    const linkToSite = await getLink(name);
     const nextBillingDate = getNextBillingDate(billingCycle);
     const paidAmount = Math.round(amount * 100);
     const { exchangeRate, settledAmt } = await generatedSettledAmt(
@@ -301,7 +311,7 @@ export async function createSubscriptions(req, res, next) {
         data: {
           userId: user.id,
           name,
-          logoUrl,
+          linkToSite,
           category,
           amount: paidAmount,
           currency,
@@ -314,22 +324,19 @@ export async function createSubscriptions(req, res, next) {
 
       await tx.history.create({
         data: {
-          subscriptionId: createdSubscription.id,
-
           subscriptionName: createdSubscription.name,
-          subscriptionLogoUrl: createdSubscription.logoUrl,
-
-          paidAmount: paidAmount,
-          paidCurrency: currency,
-
-          baseCurrency,
           category: createdSubscription.category,
-          exchangeRate,
-          settledAmount: settledAmt,
+          paidAmount: createdSubscription.amount,
+          paidCurrency: createdSubscription.currency,
+          baseCurrency: user.baseCurrency,
+          exchangeRate: createdSubscription.exchangeRate,
+          settledAmount: createdSubscription.settledAmount,
+          type: 'CREATED',
+          userId: user.id
+        }
+      })
 
-          paidAt: new Date(),
-        },
-      });
+      
 
       return createdSubscription;
     });
@@ -340,9 +347,13 @@ export async function createSubscriptions(req, res, next) {
   }
 }
 
-export async function deleteSubscriptionById(req, res, next) {
+export async function deleteSubscriptionById(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+
+    if(typeof id !== "string"){
+      throw new Error('Id should only be the type string')
+    }
 
     const parsedBody = SubscriptionIdParamSchema.safeParse({ id });
 
@@ -353,30 +364,27 @@ export async function deleteSubscriptionById(req, res, next) {
     const user = req.user;
 
     // To give a better message rather than something went wrong
-    const subscription = await prisma.subscription.findFirst({
-      where: {
-        id,
+  
+    const result = await prisma.subscription.deleteMany({
+      where:{
         userId: user.id,
-      },
-    });
+        id
+      }
+    })
 
-    if (!subscription) {
-      return res.status(404).json({ message: "Subscription not found" });
+    if(!result.count){
+      return res.status(404).json({message: 'The subscription you are trying to delete is not found'})
     }
 
-    await prisma.subscription.delete({
-      where: {
-        id: subscription.id,
-      },
-    });
 
     res.json({ message: "Subscription deleted successfully" });
   } catch (err) {
+    console.error(`Error deleting Subscription: ${err}`)
     next(err);
   }
 }
 
-export async function editSubscriptionById(req, res, next) {
+export async function editSubscriptionById(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
     const id = req.params.id;
@@ -415,7 +423,7 @@ export async function editSubscriptionById(req, res, next) {
 
     const { name, amount, currency, billingCycle, category } = parsedBody.data;
 
-    const updateData = {};
+  const updateData:Prisma.SubscriptionUpdateInput = {};
 
     if (name !== undefined) {
       const normalizedName = name.toLowerCase().trim();
@@ -437,10 +445,11 @@ export async function editSubscriptionById(req, res, next) {
         });
       }
 
-      const logoUrl = await getLogo(normalizedName);
+
+      const linkToSite = await getLink(normalizedName)
 
       updateData.name = normalizedName;
-      updateData.logoUrl = logoUrl;
+      updateData.linkToSite = linkToSite;
     }
 
     if (amount !== undefined || currency !== undefined) {
@@ -456,14 +465,16 @@ export async function editSubscriptionById(req, res, next) {
         });
       }
 
-      const rates = currencyRates.rates;
+      const rates = currencyRates.rates as Rate;
 
+     
       const finalCurrency = currency
         ? currency.toUpperCase()
         : existingSubscription.currency;
 
-      const finalAmount =
-        amount !== undefined ? amount : existingSubscription.amount / 100;
+      const finalAmount = amount !== undefined ? amount : Number(existingSubscription.amount) / 100;
+
+      
 
       if (!rates[baseCurrency] || !rates[finalCurrency]) {
         return res.status(400).json({
@@ -506,17 +517,19 @@ export async function editSubscriptionById(req, res, next) {
       });
       await tx.history.create({
         data: {
-          subscriptionId: subscription.id,
-          subscriptionName: subscription.name,
-          subscriptionLogoUrl: subscription.logoUrl,
-          paidAmount: subscription.amount,
-          paidCurrency: subscription.currency,
-          baseCurrency,
-          exchangeRate: subscription.exchangeRate,
-          type: "EDITED",
-          category: subscription.category,
-          settledAmount: subscription.settledAmount,
+          
+         subscriptionName: subscription.name,
+         category: subscription.category,
+         paidAmount: subscription.amount,
+         paidCurrency: subscription.currency,
+         exchangeRate: subscription.exchangeRate,
+         settledAmount: subscription.settledAmount,
+         type: "EDITED",
+         baseCurrency,
+         userId: user.id
+
         },
+      
       });
     });
 
@@ -525,14 +538,15 @@ export async function editSubscriptionById(req, res, next) {
       subscription: updatedSubscription,
     });
   } catch (err) {
+    console.error(`Edit Subscription Error: ${err}`)
     next(err);
   }
 }
 
-export async function renewSubscription(req, res, next) {
+export async function renewSubscription(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
-    const id = req.params.id;
+    const id = req.params.id as string;
 
     const parsedId = SubscriptionIdParamSchema.safeParse({ id });
     const parsedBody = RenewSubscriptionSchemas.safeParse(req.body);
@@ -578,7 +592,8 @@ export async function renewSubscription(req, res, next) {
     if (!currencies) {
       return res.status(500).json({ message: "Currency rate not available" });
     }
-    const rates = currencies.rates;
+
+    const rates = currencies.rates as Rate;
     const baseCurrency = user.baseCurrency;
     if (!rates[currency] || !rates[baseCurrency]) {
       return res.status(400).json({ message: "Currency not supported" });
@@ -596,9 +611,9 @@ export async function renewSubscription(req, res, next) {
     const updatedSubscription = await prisma.$transaction(async (tx) => {
       await tx.history.create({
         data: {
-          subscriptionId: subscription.id,
+          userId: user.id,
           subscriptionName: subscription.name,
-          subscriptionLogoUrl: subscription.logoUrl,
+         
           paidAmount,
           paidCurrency: currency,
           baseCurrency,
@@ -609,7 +624,7 @@ export async function renewSubscription(req, res, next) {
         },
       });
 
-      return await tx.subscription.update({
+     return await tx.subscription.update({
         where: {
           id: subscription.id,
         },
@@ -623,6 +638,9 @@ export async function renewSubscription(req, res, next) {
           status: "ACTIVE",
         },
       });
+     
+
+     
     });
 
     return res.status(200).json({
@@ -630,6 +648,7 @@ export async function renewSubscription(req, res, next) {
       subscription: updatedSubscription,
     });
   } catch (err) {
+    console.error(`Renew Error: ${err}`)
     next(err);
   }
 }

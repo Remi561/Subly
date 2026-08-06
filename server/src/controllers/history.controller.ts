@@ -1,4 +1,7 @@
 import { prisma } from "../libs/prisma.js";
+import {Request, Response, NextFunction} from 'express'
+import { WhereClause } from "../types/global.js";
+import {Prisma, Category, Type} from '../generated/prisma/client.js'
 
 const HISTORY_TYPES = new Set(["CREATED", "EDITED", "RENEWED"]);
 const HISTORY_CATEGORIES = new Set([
@@ -11,18 +14,21 @@ const HISTORY_CATEGORIES = new Set([
   "OTHER",
 ]);
 
-export async function getFilteredHistory(req, res, next) {
+export async function getFilteredHistory(req: Request, res: Response, next: NextFunction) {
   try {
     const { category, type, range } = req.query;
-    const search = req.query.search || req.query.query;
-    const page = Math.max(parseInt(req.query.page) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+    const search = 
+      typeof req.query.search === 'string'
+        ? req.query.search 
+        : typeof req.query.query === 'string'
+        ? req.query.query
+        : '';
+    const page = Math.max(parseInt(req.query.page as string ) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 10, 1), 100);
     const userId = req.user.id;
 
-    const whereClause = {
-      subscription: {
-        userId,
-      },
+    const whereClause: Prisma.HistoryWhereInput = {
+        userId
     };
 
     const normalizedType = type ? String(type).toUpperCase() : null;
@@ -34,7 +40,7 @@ export async function getFilteredHistory(req, res, next) {
         return res.status(400).json({ message: "Invalid history type" });
       }
 
-      whereClause.type = normalizedType;
+      whereClause.type = normalizedType as Type;
     }
 
     if (normalizedCategory && normalizedCategory !== "ALL") {
@@ -42,7 +48,7 @@ export async function getFilteredHistory(req, res, next) {
         return res.status(400).json({ message: "Invalid history category" });
       }
 
-      whereClause.category = normalizedCategory;
+      whereClause.category = normalizedCategory as Category;
     }
 
     if (range && range !== "ALL") {
@@ -107,6 +113,7 @@ export async function getFilteredHistory(req, res, next) {
       },
     });
   } catch (err) {
+    console.error(`History Error: ${err}`)
     next(err);
   }
 }

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Response, Request, NextFunction } from 'express';
 import { env } from "./src/config/env.js";
 import { authRouter } from './src/routes/auth.route.js';
 import cookieParser from "cookie-parser";
@@ -25,7 +25,7 @@ const app = express()
 
 
 
-const normalizeOrigin = (origin) => origin?.trim().replace(/\/$/, "");
+const normalizeOrigin = (origin: string| undefined) => origin?.trim().replace(/\/$/, "");
 
 const configuredOrigins = [
   env.CLIENT_URL,
@@ -50,7 +50,7 @@ app.use(
       const normalizedOrigin = normalizeOrigin(origin);
 
       if (!allowedOrigins.has(normalizedOrigin)) {
-        const msg = `CORS blocked origin: ${origin}. Add it to CLIENT_URL or CORS_ORIGINS.`;
+        const msg = `CORS blocked origin: ${origin}.`;
         return callback(new Error(msg), false);
       }
 
@@ -76,7 +76,7 @@ app.use("/api/history", requireAuth, historyRouter);
 app.use("/api/admin", apiLimiter, requireAuth, requireRole, adminRouter);
 app.use("/api/notification", requireAuth, notificationRouter);
 
-app.use((err, req, res, next) => {
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err) {
     console.error(err);
     return res.status(500).json({ message: "Something went wrong" });
