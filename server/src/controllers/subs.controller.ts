@@ -11,24 +11,39 @@ import {
   getNextBillingDate,
 } from "../libs/utils.js";
 
+import {getAuth }from '@clerk/express'
 import { Request, Response, NextFunction } from "express";
 import {Prisma} from '../generated/prisma/client.js'
 import { Rate } from "../types/global.js";
 
 // GET request
-export async function getSubscriptions(req: Request, res: Response, next: NextFunction) {
+export async function getAlmostExpiredSubscriptions(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user;
+    const {userId: clerkId}= getAuth(req)
+    const almostExpire = new Date()
+
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
+
+    almostExpire.setDate(almostExpire.getDate() + 7)
     const data = await prisma.subscription.findMany({
-      where: { userId: user.id },
+      where: { 
+        user: {
+          clerkId
+        },
+        nextBillingDate: {lte: almostExpire}
+      },
+      take: 10,
       orderBy: { createdAt: "asc" },
+      
     });
     if (!data) {
       return res
-        .status(404)
-        .json({ success: false, message: "subscription not found" });
+        .status(200)
+        .json({});
     }
-    return res.json({ success: true, message: "Subscription found", data });
+    return res.json({message: "Almost Expired subscription found", data });
   } catch (err) {
     console.error(`Error getting subscriptions: ${err}`);
     next(err);
@@ -37,12 +52,18 @@ export async function getSubscriptions(req: Request, res: Response, next: NextFu
 }
 export async function getSubscriptionById(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user;
+    const {userId: clerkId}= getAuth(req)
     const id = req.params.id as string;
+
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
 
     const subscription = await prisma.subscription.findFirst({
       where: {
-        userId: user.id,
+        user: {
+          clerkId
+        },
         id,
       },
     });
@@ -61,11 +82,16 @@ export async function getPaginatedSubscription(req: Request, res: Response, next
     const currentPage = parseInt(req.query.page as string) || 1;
     const search = req.query.search as string;
     const itemsPerPage = 10;
-    const user = req.user;
+    const {userId: clerkId} = getAuth(req)
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
 
     // 1. Build the base query (always filter by the logged-in user)
-    const whereClause: { userId: string, OR?:[{ name: { contains: string, mode: "insensitive" } }] } = {
-      userId: user.id,
+    const whereClause: { user: {clerkId: string}, OR?:[{ name: { contains: string, mode: "insensitive" } }] } = {
+      user: {
+        clerkId
+      },
     };
 
     // 2. Only add the OR search block if the user actually typed a search term
@@ -109,22 +135,27 @@ export async function getPaginatedSubscription(req: Request, res: Response, next
 
 export async function getSubscriptionsInfo(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user;
+    const {userId: clerkId} = getAuth(req)
+
+    
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
 
     const [amountResult, totalActiveSub, totalExpiredSub, totalSubs] =
       await Promise.all([
         prisma.subscription.aggregate({
-          where: { userId: user.id, status: "ACTIVE" },
+          where: { user: {clerkId}, status: "ACTIVE" },
           _sum: { settledAmount: true },
         }),
         prisma.subscription.count({
-          where: { userId: user.id, status: "ACTIVE" },
+          where: { user: {clerkId}, status: "ACTIVE" },
         }),
         prisma.subscription.count({
-          where: { userId: user.id, status: "EXPIRED" },
+          where: { user: {clerkId}, status: "EXPIRED" },
         }),
         prisma.subscription.count({
-          where: { userId: user.id },
+          where: { user: {clerkId}},
         }),
       ]);
 
@@ -147,14 +178,23 @@ export async function getSubscriptionsInfo(req: Request, res: Response, next: Ne
 
 export async function getSubscriptionExpenses(req: Request, res: Response, next: NextFunction) {
   try {
-    const userId = req.user.id;
+
+    const {userId: clerkId} = getAuth(req)
+
+    
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
+
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
     sixMonthsAgo.setDate(1); // Start at the beginning of that month
 
     const subscriptions = await prisma.subscription.findMany({
       where: {
-        userId,
+        user: {
+          clerkId
+        },
         createdAt: { gte: sixMonthsAgo },
       },
       select: {
@@ -204,12 +244,20 @@ export async function getSubscriptionExpenses(req: Request, res: Response, next:
 
 export async function getSpendingByCategory(req: Request, res: Response, next: NextFunction) {
   try {
-    const userId = req.user.id;
+    
+    const {userId: clerkId} = getAuth(req)
+
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
+
     // 1. Group subscriptions by category and sum up the settled amounts
     const categorySums = await prisma.subscription.groupBy({
       by: ["category"],
       where: {
-        userId: userId,
+        user: {
+          clerkId
+        },
         status: { not: "ARCHIVED" }, // Optional: exclude archived accounts
       },
       _sum: {
@@ -255,12 +303,18 @@ export async function getSpendingByCategory(req: Request, res: Response, next: N
 
 export async function createSubscriptions(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user;
+
+    const {userId: clerkId} = getAuth(req)
+    
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
+    console.log(req.body)
     const parsedBody = CreateSubscriptionSchema.safeParse(req.body);
 
     if (!parsedBody.success) {
       return res.status(400).json({
-        errors: parsedBody.error.flatten().fieldErrors,
+        errors: parsedBody.error.flatten().formErrors,
         message: "Invalid input",
       });
     }
@@ -271,11 +325,27 @@ export async function createSubscriptions(req: Request, res: Response, next: Nex
     const existingSubscription = await prisma.subscription.findFirst({
       where: {
         AND: {
-          userId: user.id,
+          user: {
+            clerkId
+          },
           name,
         },
       },
     });
+
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId
+      },
+      select: {
+        baseCurrency: true, 
+        id: true,
+      }
+    })
+
+    if(!user){
+      return res.status(404).json({message: "User not found"})
+    }
 
     if (existingSubscription) {
       return res.status(400).json({ message: "Subscription already exist" });
@@ -301,7 +371,7 @@ export async function createSubscriptions(req: Request, res: Response, next: Nex
     const paidAmount = Math.round(amount * 100);
     const { exchangeRate, settledAmt } = await generatedSettledAmt(
       currency,
-      user.baseCurrency,
+      baseCurrency,
       amount,
       rates,
     );
@@ -361,13 +431,21 @@ export async function deleteSubscriptionById(req: Request, res: Response, next: 
       return res.status(400).json({ message: "Unsupported Id" });
     }
 
-    const user = req.user;
+    const {userId: clerkId} = getAuth(req)
+
+    
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
+
 
     // To give a better message rather than something went wrong
   
     const result = await prisma.subscription.deleteMany({
       where:{
-        userId: user.id,
+        user: {
+          clerkId
+        },
         id
       }
     })
@@ -386,13 +464,34 @@ export async function deleteSubscriptionById(req: Request, res: Response, next: 
 
 export async function editSubscriptionById(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user;
+    const {userId: clerkId} = getAuth(req)
+
+    
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId
+      },
+      select:{
+        id: true,
+        baseCurrency: true
+      }
+    })
+
+    if(!user){
+      return res.status(404).json({message: 'User not found'})
+    }
+
     const id = req.params.id;
     const baseCurrency = user.baseCurrency.toUpperCase();
 
     const parsedId = SubscriptionIdParamSchema.safeParse({ id });
 
     if (!parsedId.success) {
+      console.log('from subscription id schemas')
       return res.status(400).json({
         errors: parsedId.error.flatten().fieldErrors,
         message: "Unsupported Id",
@@ -400,14 +499,17 @@ export async function editSubscriptionById(req: Request, res: Response, next: Ne
     }
 
     const parsedBody = UpdateSubscriptionSchema.safeParse(req.body);
-
+    console.log(req.body)
+    
     if (!parsedBody.success) {
+      console.log('from subscription schemas')
       return res.status(400).json({
         errors: parsedBody.error.flatten().fieldErrors,
         message: "Invalid input",
       });
     }
 
+    // user already found
     const existingSubscription = await prisma.subscription.findFirst({
       where: {
         userId: user.id,
@@ -545,7 +647,25 @@ export async function editSubscriptionById(req: Request, res: Response, next: Ne
 
 export async function renewSubscription(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user;
+    const {userId: clerkId} = getAuth(req)
+
+    
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
+
+    const user = await prisma.user.findUnique({
+      where:{
+        clerkId
+      }
+    })
+
+    if(!user){
+      return res.status(404).json({message: 'User not found'})
+    }
+
+    console.log(req.body)
+
     const id = req.params.id as string;
 
     const parsedId = SubscriptionIdParamSchema.safeParse({ id });
@@ -575,7 +695,7 @@ export async function renewSubscription(req: Request, res: Response, next: NextF
       return res.status(404).json({ message: "Subscription not found" });
     }
 
-    if (!["EXPIRED", "ARCHIVED"].includes(subscription.status)) {
+    if (!["EXPIRED", "ARCHIVED", "CANCELLED"].includes(subscription.status)) {
       return res.status(400).json({
         message: "Only expired and archived subscription can be renewed",
       });
@@ -651,4 +771,100 @@ export async function renewSubscription(req: Request, res: Response, next: NextF
     console.error(`Renew Error: ${err}`)
     next(err);
   }
+}
+
+export async function cancelSubscription(req: Request, res:Response, next:NextFunction){
+    try{
+      //Getting the ids
+      const subscriptionId = req.params.id as string;
+      const {userId: clerkId} = getAuth(req)
+
+    
+    if(!clerkId){
+      return res.status(401).json({message: 'Access denied'})
+    }
+
+
+      const isExisting = await prisma.subscription.findFirst({
+        where: {
+          user: {
+            clerkId
+          },
+          id: subscriptionId
+        }
+      })
+
+      if(!isExisting){
+        return res.status(404).json({message: "Subscription not found"})
+      }
+      if(isExisting.status !== 'ACTIVE'){
+        return res.status(400).json({message: "Only active subscription can be cancelled "})
+      }
+
+      await prisma.subscription.update({
+        where:{
+          id: isExisting.id,
+        },
+        data:{
+          status: 'CANCELLED'
+        }
+      })
+
+      return res.status(200).json({message: 'Your subscription has been successfully cancelled'})
+    } catch(err){
+      console.error(`The cancel error: ${err}`)
+      next(err)
+    }
+}
+
+export async function archiveSubscription(req: Request, res:Response, next:NextFunction){
+    try {
+      const {userId: clerkId} = getAuth(req)
+
+    
+      if(!clerkId){
+        return res.status(401).json({message: 'Access denied'})
+      }
+
+      const parsedId = SubscriptionIdParamSchema.safeParse({
+        id: req.params.id
+      })
+      // validate the subscription id using Zod 
+      if(!parsedId.success){
+        return res.status(400).json({message: parsedId.error.flatten().fieldErrors})
+      }
+
+      const existingSubscription = await prisma.subscription.findFirst({
+        where: {
+          user: {
+            clerkId
+          },
+          id: parsedId.data.id
+        }
+      })
+
+      if(!existingSubscription){
+        return res.status(404).json({message: "Subscription not found"})
+      }
+      // Subscription must be either expired or cancelled
+      if(!['EXPIRED', "CANCELLED"].includes(existingSubscription.status)){
+        return res.status(400).json({message: "Subscription must be cancelled or expired"})
+      }
+      
+      await prisma.subscription.update({
+       where: {
+        id: existingSubscription.id
+       }, 
+       data: {
+          status: "ARCHIVED"
+       }
+      })
+
+      return res.status(200).json({message: 'Your subscription has been sucessfully Archived'})
+
+
+    } catch(err){
+      console.error(`Archive Error: ${err}`)
+      next(err)
+    }
 }

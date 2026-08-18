@@ -18,28 +18,26 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
+
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { fetchWithAuth } from "@/lib/utils";
+
 import { Link } from "react-router";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/action";
 
 export function SubscriptionActions({ subscription }) {
   const queryClient = useQueryClient();
 
   // 1. The Delete Mutation
   const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const response = await fetchWithAuth(`/api/subscription/delete/${id}`, {
+    mutationFn: (id) => apiFetch(`/api/subscription/delete/${id}`, {
         method: "DELETE",
-      });
+      }),
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Failed to delete subscription");
-      }
-      return response.json();
-    },
+      
+    
     onSuccess: () => {
         // Instantly refresh the table!
        
@@ -53,6 +51,23 @@ export function SubscriptionActions({ subscription }) {
     }
      
   });
+
+  const cancelMutation = useMutation({
+    mutationFn: (id) => apiFetch(`/api/subscription/cancel/${id}`, {
+      method: 'PATCH'
+    }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["chart"] });
+      toast.success(`${subscription.name} has been successfully cancelled`);
+    },
+    onError: () => {
+      toast.error(`${subscription.name} cannot be cancelled`)
+    }
+
+  })
 
   return (
     // Wrap the ENTIRE menu inside the AlertDialog context
@@ -79,8 +94,19 @@ export function SubscriptionActions({ subscription }) {
             <DropdownMenuItem>Edit</DropdownMenuItem>
           </Link>
 
-          {["EXPIRED", "ARCHIVED"].includes(subscription.status) && (
-            <DropdownMenuItem>Renew</DropdownMenuItem>
+          {subscription.status === 'ACTIVE'&& (
+            <DropdownMenuItem className={'text-subly-danger focus:text-subly-danger focus:bg-red-50 disabled:text-gray-500'} onClick={() => cancelMutation.mutate(subscription.id)} disabled={cancelMutation.isPending} onSelect={(e) => e.preventDefault()}>{cancelMutation.isPending? 'Cancelling': 'Cancel'}</DropdownMenuItem>
+          )}
+
+          {subscription.status === 'EXPIRED'&& (
+            <DropdownMenuItem className={'text-subly-danger focus:text-subly-danger focus:bg-red-50'}>Archive</DropdownMenuItem>
+          )}
+
+          {["EXPIRED", "ARCHIVED", "CANCELLED"].includes(subscription.status) && (
+            <Link to={`/dashboard/subscriptions/${subscription.id}/renew`}>
+              <DropdownMenuItem  onSelect={(e) => e.preventDefault()}>Renew</DropdownMenuItem>
+            </Link>
+
           )}
 
           {/* THE MAGIC TRICK: AlertDialogTrigger acts as the DropdownMenuItem */}

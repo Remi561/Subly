@@ -1,101 +1,46 @@
-import { redirect } from "react-router";
-import { RegisterSchemas, LoginSchemas } from "./zodType";
-import { getApiBaseUrl } from "./utils";
+// import {getToken} from '@clerk/react'
+// export function getApiBaseUrl() {
+//   return import.meta.env.VITE_API_URL;
+
+import { useQuery } from "@tanstack/react-query";
+
+// }
 
 
-export const register = async ({ request }) => {
-  const API_BASE_URL = getApiBaseUrl();
-  try {
-    const formData = await request.formData();
 
-    const result = Object.fromEntries(formData);
-    const confirmPassword = result.confirmPassword;
 
-    const parsedData = RegisterSchemas.safeParse(result);
 
-    if (!parsedData.success) {
-      return {
-        errors: parsedData.error.flatten().fieldErrors,
-        message: "Invalid form input",
-      };
-    }
 
-    const { password, ...registerData } = parsedData.data;
-
-    if (password !== confirmPassword) {
-      return {
-        errors: {
-          confirmPassword: ["Password does not match"],
-        },
-        message: "Invalid form input",
-      };
-    }
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...registerData,
-        password,
-      }),
+export async function apiFetch(url, options = {}) {
+    const getApiBaseUrl = import.meta.env.VITE_API_URL;
+    const response = await fetch(`${getApiBaseUrl}${url}`, {
+      ...options,
       credentials: "include",
     });
 
-    const data = await response.json();
+    if(!response.ok){
+      let message = 'Request failed';
 
-    if (!response.ok) {
-      return {
-        message: data.message || "Registration failed",
-      };
+      try {
+          const error = await response.json()
+
+          if(error?.message) { 
+            message = error.message
+          }
+      } catch {
+        throw new Error('Something went wrong')
+      }
+      throw new Error(message)
     }
+  
+  return response.json()
+}
 
-    return redirect("/dashboard");
-  } catch (err) {
-    console.error(err);
+export function GetCurrentUser(){
+  const {data, isError} = useQuery({
+    queryKey: ['me'],
+    queryFn:() =>  apiFetch('/api/me')
+  })
 
-    return {
-      message: "Something went wrong",
-    };
-  }
-};
-
-export const login = async ({ request }) => {
-  const API_BASE_URL = getApiBaseUrl();
-  try {
-    const formData = await request.formData();
-
-    const email = formData.get("email");
-    const password = formData.get("password");
-
-    const parsedData = LoginSchemas.safeParse({ email, password });
-
-    if (!parsedData.success) {
-      return {
-        errors: parsedData.error.flatten().fieldErrors,
-        message: "Invalid Input",
-      };
-    }
-
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      credentials: "include",
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      return {
-        message: data.message || "Login failed",
-      };
-    }
-    return redirect("/dashboard");
-  } catch (err) {
-    console.error(err);
-
-    return {
-      message: "Something went wrong",
-    };
-  }
-};
+  return {data, isError}; 
+}

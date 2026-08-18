@@ -1,6 +1,7 @@
 import Breadcrumbs from "@/components/Breadcrumb"
 import AddForm from "@/components/dashboard/AddForm";
-import { fetchWithAuth } from "@/lib/utils";
+import { apiFetch } from "@/lib/action";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 
@@ -16,32 +17,31 @@ export default function Add() {
     ];
   const { data, isError } = useQuery({
     queryKey: ['rates'],
-    queryFn: () => 
-      fetchWithAuth('/api/rate').then(res => res.json()),
+    queryFn: () => apiFetch('/api/rate'),
     
     staleTime: 24 * 60 * 60 * 1000, //1 day
     gcTime: 1000 * 60*60*24,
   })
   
   const mutation = useMutation({
-    mutationFn: async (newSub) => {
-      const response = await fetchWithAuth('/api/subscription/add', {
+    mutationFn: (newSub) => 
+      apiFetch('/api/subscription/add', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          'Content-Type': "application/json"
+        }, 
         body: JSON.stringify(newSub)
-      })
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message)
-      }
+    }),
+    
       
 
       
-    },
+   
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
       queryClient.invalidateQueries({ queryKey: ["subscriptions", "info"] });
+      queryClient.invalidateQueries({queryKey: ['history']})
       queryClient.invalidateQueries({queryKey: ["chart"]})
       navigate('/dashboard/subscriptions')
     }

@@ -1,12 +1,19 @@
 import { prisma } from "../libs/prisma.js"
 import {Response, Request, NextFunction} from 'express'
+import {getAuth }from '@clerk/express'
 export async function getNotification(req: Request, res: Response, next: NextFunction) {
     try { 
-        const userId = req.user.id
-     
+        const {userId: clerkId} = getAuth(req)
+
+        
+        if(!clerkId){
+            return res.status(401).json({message: 'Access denied'})
+        }
         const notifications = await prisma.notification.findMany({
             where: {
-                userId
+                user: {
+                    clerkId
+                }
             }
         })
 
@@ -21,7 +28,11 @@ export async function getNotification(req: Request, res: Response, next: NextFun
 
 export async function deleteNotification(req: Request, res:Response, next:NextFunction) {
     try {
-        const userId = req.user.id;
+        const {userId: clerkId} = getAuth(req);
+
+        if(!clerkId){
+            return res.status(401).json({message: 'Access denied'})
+        }
 
         const id = req.params.id;
 
@@ -31,7 +42,9 @@ export async function deleteNotification(req: Request, res:Response, next:NextFu
 
         const results = await prisma.notification.deleteMany({
             where:{
-                userId,
+                user: {
+                    clerkId
+                },
                 id
             }
         })

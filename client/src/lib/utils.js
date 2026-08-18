@@ -6,10 +6,7 @@ export function cn(...inputs) {
   return twMerge(clsx(...inputs));
 }
 
-export function getApiBaseUrl() {
-  return import.meta.env.VITE_API_URL;
 
-}
 
 export function formatMoney(amountInMinorUnit, currency) {
   return new Intl.NumberFormat("en-NG", {
@@ -79,8 +76,8 @@ export function getCategoryStyle(category) {
       text: "text-subly-brand-blue",
     },
     PRODUCTIVITY: {
-      dot: "bg-subly-brand-purple",
-      text: "text-subly-brand-purple",
+      dot: "bg-subly-soft-purple",
+      text: "text-subly-soft-purple",
     },
     STORAGE: {
       dot: "bg-subly-warning",
@@ -129,69 +126,7 @@ export function getStatusStyle(status) {
   return styles[status] || styles.ARCHIVED;
 }
 
-async function extractErrorMessage(response) {
-  try {
-    // Clone the response so we don't lock the readable stream
-    const clonedResponse = response.clone();
 
-    // Try to parse it as JSON first
-    const data = await clonedResponse.json();
-
-    return data.message || data.error || "Something went wrong";
-  } catch{
-    return "An unexpected server error occurred";
-  }
-}
-
-let refreshPromise = null;
-
-export async function fetchWithAuth(url, options = {}) {
-  const API_BASE_URL = getApiBaseUrl();
-  try {
-    let response = await fetch(`${API_BASE_URL}${url}`, {
-      ...options,
-      credentials: "include", // Include cookies for authentication
-    });
-
-    if (response.status === 401) {
-      if (!refreshPromise) {
-        refreshPromise = fetch(`${API_BASE_URL}/api/refresh`, {
-          method: "POST",
-          credentials: "include",
-        }).finally(() => {
-          refreshPromise = null;
-        });
-      }
-
-      const refreshResponse = await refreshPromise;
-
-      if (!refreshResponse.ok) {
-        const serverMessage = await extractErrorMessage(response);
-        throw new Error(serverMessage);
-
-      }
-
-      response = await fetch(`${API_BASE_URL}${url}`, {
-        ...options,
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const serverMessage = await extractErrorMessage(response);
-        throw new Error(serverMessage);
-      }
-      
-    }
-    else if (!response.ok) {
-      const serverMessage = await extractErrorMessage(response);
-      throw new Error(serverMessage);
-    }
-    return response
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    throw err; // Rethrow the error to be handled by the caller
-  }
-}
 
 export const generatePaginationRange = (currentPage, totalPages) => {
   const siblingCount = 1; // Number of pages to show on either side of current page
@@ -220,3 +155,12 @@ export const generatePaginationRange = (currentPage, totalPages) => {
     (item, index, arr) => item !== "..." || arr[index - 1] !== "...",
   );
 };
+
+
+// url format 
+export function formatSiteUrl(url) {
+  if (!url) return null;
+  return url.startsWith("http://") || url.startsWith("https://")
+    ? url
+    : `https://${url}`;
+}

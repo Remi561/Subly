@@ -2,6 +2,7 @@ import { prisma } from "../libs/prisma.js";
 import {Request, Response, NextFunction} from 'express'
 import { WhereClause } from "../types/global.js";
 import {Prisma, Category, Type} from '../generated/prisma/client.js'
+import {getAuth }from '@clerk/express'
 
 const HISTORY_TYPES = new Set(["CREATED", "EDITED", "RENEWED"]);
 const HISTORY_CATEGORIES = new Set([
@@ -16,6 +17,7 @@ const HISTORY_CATEGORIES = new Set([
 
 export async function getFilteredHistory(req: Request, res: Response, next: NextFunction) {
   try {
+  
     const { category, type, range } = req.query;
     const search = 
       typeof req.query.search === 'string'
@@ -25,10 +27,17 @@ export async function getFilteredHistory(req: Request, res: Response, next: Next
         : '';
     const page = Math.max(parseInt(req.query.page as string ) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 10, 1), 100);
-    const userId = req.user.id;
+    // clerkId 
+    const {userId: clerkId } = getAuth(req)
+    
+    if(!clerkId){
+      return res.sendStatus(400)
+    }
 
     const whereClause: Prisma.HistoryWhereInput = {
-        userId
+        user: {
+          clerkId
+        }
     };
 
     const normalizedType = type ? String(type).toUpperCase() : null;

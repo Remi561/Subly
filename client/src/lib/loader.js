@@ -1,40 +1,33 @@
 import { redirect } from "react-router";
-import { fetchWithAuth } from "./utils";
 
 
+export const dashboardLoader = async() => {
+   
 
-export async function dashboardLoader() {
-    try {
-        const response = await fetchWithAuth("/api/me");
-        return await response.json();
-    } catch (err) {
-        console.error("Error fetching user data:", err);
-        return redirect("/auth/login");
-   }
-}
+    const response = await fetch('/api/me')
 
-export async function adminLoader() {
-  const data = await dashboardLoader();
-
-  if (data instanceof Response) {
-    return data;
-  }
-
-  if (data?.user?.role !== "ADMIN") {
-    return redirect("/dashboard");
-  }
-
-  return data;
-}
-
-export async function authLoader() {
-  try {
-    const response = await fetchWithAuth("/api/me");
-    if (response.ok) {
-      return redirect("/dashboard");
+    if(!response.ok){
+        if(response.status >= 500){
+            return redirect('/')
+        }
+        return redirect('/auth/login')
     }
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
+
+
+
+    return response.json()
 }
+
+export const authLoader = async() => {
+    const response = await fetch('/api/me')
+
+    if(response.ok){
+        return redirect('/dashboard')
+    }
+
+    return null; 
+}
+
+
+
+

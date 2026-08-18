@@ -1,15 +1,16 @@
 import express, { Response, Request, NextFunction } from 'express';
 import { env } from "./src/config/env.js";
-import { authRouter } from './src/routes/auth.route.js';
+
 import cookieParser from "cookie-parser";
 import { subscriptionRouter } from "./src/routes/subs.route.js";
 import { requireAuth } from "./src/middlewares/requireAuth.middleware.js";
+
 import {
   apiLimiter,
   authLimiter,
 } from "./src/middlewares/rateLimiter.middleware.js";
 import { adminRouter } from "./src/routes/admin.route.js";
-import { requireRole } from "./src/middlewares/requireRole.middleware.js";
+import { requireAdmin } from "./src/middlewares/requireAdmin.middleware.js";
 import { meRouter } from "./src/routes/me.route.js";
 import { refreshRouter } from "./src/routes/refresh.route.js";
 import { currencyRouters } from "./src/routes/rate.route.js";
@@ -17,10 +18,17 @@ import { historyRouter } from "./src/routes/history.route.js";
 import cors from "cors";
 import { notificationRouter } from "./src/routes/notification.route.js";
 import { jobsMaintenanceRouter } from "./src/routes/maintenance.route.js";
+import {clerkMiddleware, getAuth} from '@clerk/express'
+import {webHooksRouter} from './src/routes/webhooks.route.js'
+
 
 
 
 const app = express()
+
+app.use(express.json())
+
+app.use(clerkMiddleware())
 
 
 
@@ -60,21 +68,23 @@ app.use(
   }),
 );
 
-app.use(express.json())
+
 app.use(cookieParser());
 
 
 // apis
 
-app.use("/api/auth", authLimiter, authRouter);
+
 app.use("/api/me", requireAuth, meRouter);
 app.use("/api/jobs", jobsMaintenanceRouter);
 app.use("/api/rate", currencyRouters);
 app.use("/api/refresh", apiLimiter, refreshRouter);
 app.use("/api/subscription", requireAuth, subscriptionRouter);
 app.use("/api/history", requireAuth, historyRouter);
-app.use("/api/admin", apiLimiter, requireAuth, requireRole, adminRouter);
+app.use("/api/admin", apiLimiter, requireAuth, requireAdmin, adminRouter);
 app.use("/api/notification", requireAuth, notificationRouter);
+
+app.use('/api/webhooks', express.raw({ type: 'application/json' }), webHooksRouter)
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err) {

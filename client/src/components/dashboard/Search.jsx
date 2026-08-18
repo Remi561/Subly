@@ -49,7 +49,7 @@ export function Search() {
           onChange={(e) => setInputValue(e.target.value)}
         />
         <Link
-          className={`flex  items-center gap-1 bg-linear-to-r from-subly-brand-blue to-subly-brand-purple hover:opacity-80 p-2 rounded-lg`}
+          className={`flex  items-center gap-1 bg-subly-brand-blue hover:opacity-80 p-2 rounded-lg`}
           to={'/dashboard/subscriptions/add'}
         >
           <Plus size={10}  className="text-white"/>

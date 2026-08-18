@@ -5,7 +5,7 @@ import { SubscriptionCreateInput } from "../generated/prisma/models.js";
 import { User } from "../generated/prisma/client.js";
 const resend = new Resend(env.RESEND_API_KEY)
 
-export async function sendReminderEmail(user: any, subscriptions): Promise<void> {
+export async function sendReminderEmail(user: any, subscriptions:any[]): Promise<void> {
     const items = subscriptions.map(sub => `<li>${sub.name} on ${sub.nextBillingDate}</li>`).join('')
 
     await resend.emails.send({

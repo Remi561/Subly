@@ -1,68 +1,51 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, LogOut, ShieldCheck, UserRound } from "lucide-react";
-import { useNavigate, useRouteLoaderData } from "react-router";
-import { toast } from "sonner";
+
+import {
+  ChevronRight,
+  LogOut,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+import {
+  NavLink,
+  Outlet,
+
+  useRouteLoaderData,
+} from "react-router";
+
 
 import Breadcrumbs from "@/components/Breadcrumb";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+ 
 } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
-import { getApiBaseUrl } from "@/lib/utils";
 
-const settingsItems = [
+import {useClerk} from "@clerk/react"
+
+const settingsLinks = [
   {
-    label: "Account information",
-    description: "Review your username, role, and base currency.",
+    label: "Account Information",
+    description: "Username, email, role, currency & reminders",
     icon: UserRound,
-  },
-  {
-    label: "Notifications",
-    description: "Reminder preferences will be managed here.",
-    icon: Bell,
+    to: "/dashboard/settings",
+    end: true,
   },
   {
     label: "Security",
-    description: "Password and session settings will be managed here.",
+    description: "Password and connected devices",
     icon: ShieldCheck,
+    to: "/dashboard/settings/security",
+    end: false,
   },
 ];
 
 export default function Settings() {
   const data = useRouteLoaderData("dashboard");
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`${getApiBaseUrl()}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+  const {signOut } = useClerk()
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Logout failed");
-      }
-
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.clear();
-      toast.success("Logged out successfully");
-      navigate("/auth/login", { replace: true });
-    },
-    onError: (error) => {
-      toast.error(error.message || "Unable to logout");
-    },
-  });
+  
 
   const breadCrumb = [
     { name: "Dashboard", href: "/dashboard" },
@@ -80,98 +63,94 @@ export default function Settings() {
           Settings
         </h1>
         <p className="mt-2 text-sm text-subly-text-secondary">
-          Manage your account and session preferences.
+          Manage your account, security, and session preferences.
         </p>
       </header>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <Card className="rounded-xl border-subly-border bg-subly-card shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-subly-text-primary">
-              Account
-            </CardTitle>
-            <CardDescription>Your current Subly account details.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <p className="text-xs font-medium uppercase text-subly-text-secondary">
-                Username
-              </p>
-              <p className="mt-1 font-semibold text-subly-text-primary">
-                {data?.user?.username}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium uppercase text-subly-text-secondary">
-                Role
-              </p>
-              <Badge className="mt-1 bg-subly-soft-blue text-subly-brand-blue">
-                {data?.user?.role}
-              </Badge>
-            </div>
-            <div>
-              <p className="text-xs font-medium uppercase text-subly-text-secondary">
-                Base currency
-              </p>
-              <p className="mt-1 font-semibold text-subly-text-primary">
-                {data?.user?.baseCurrency}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+        {/* Left sidebar navigation */}
+        <nav className="space-y-2">
+          {settingsLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) =>
+                  `group flex items-center gap-3 rounded-xl border px-4 py-3.5 transition-all ${
+                    isActive
+                      ? "border-[#1565c0]/20 bg-[#bbdefb]/20 shadow-sm"
+                      : "border-transparent hover:border-slate-200 hover:bg-slate-50"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                        isActive
+                          ? "bg-[#1565c0] text-white"
+                          : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
+                      }`}
+                    >
+                      <Icon size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`text-sm font-semibold ${
+                          isActive
+                            ? "text-[#1565c0]"
+                            : "text-subly-text-primary"
+                        }`}
+                      >
+                        {link.label}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-subly-text-secondary">
+                        {link.description}
+                      </p>
+                    </div>
+                    <ChevronRight
+                      size={14}
+                      className={`shrink-0 ${
+                        isActive
+                          ? "text-[#1565c0]"
+                          : "text-slate-300 group-hover:text-slate-400"
+                      }`}
+                    />
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
 
-        <Card className="rounded-xl border-subly-border bg-subly-card shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-subly-text-primary">
-              Session
-            </CardTitle>
-            <CardDescription>End your current authenticated session.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="destructive"
-              className="w-full"
-              disabled={logoutMutation.isPending}
-              onClick={() => logoutMutation.mutate()}
-            >
-              {logoutMutation.isPending ? (
-                <>
-                  <Spinner className="mr-2" /> Logging out...
-                </>
-              ) : (
-                <>
-                  <LogOut size={16} /> Logout
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
 
-      <div className="mt-6 grid gap-4">
-        {settingsItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Card
-              key={item.label}
-              className="rounded-xl border-subly-border bg-subly-card shadow-sm"
-            >
-              <CardContent className="flex items-center gap-4">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-subly-soft-blue text-subly-brand-blue">
-                  <Icon size={18} />
-                </span>
-                <div>
-                  <p className="font-semibold text-subly-text-primary">
-                    {item.label}
-                  </p>
-                  <p className="mt-1 text-sm text-subly-text-secondary">
-                    {item.description}
-                  </p>
-                </div>
+        </nav>
+
+        {/* Right content area — routed child pages */}
+        <div className="min-w-0">
+          <Outlet context={{ user: data?.user }} />
+                    {/* Danger zone — Logout */}
+                    <div className="pt-4">
+            <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-subly-text-secondary">
+              Danger Zone
+            </p>
+            <Card className="rounded-xl border-red-100 bg-red-50/50 shadow-none">
+              <CardContent className="p-3">
+                <Button
+                  variant="destructive"
+                  className="w-full"
+           
+                  onClick={() => signOut({redirectUrl: '/auth/login'})}
+                >
+                  <LogOut size={16} className="mr-2" /> Logout
+                </Button>
               </CardContent>
             </Card>
-          );
-        })}
+          </div>
+        </div>
+
+        
       </div>
     </section>
   );

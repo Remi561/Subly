@@ -4,10 +4,13 @@ import './index.css'
 import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from "react-router";
 // import Home from "./pages/Home.jsx";
-import Auth from "./pages/auth/Auth.jsx";
-import { register, login } from "./lib/action.js";
+import Register from "./pages/auth/Register.jsx";
+import ForgetPwd from "./pages/auth/ForgetPwd.jsx";
+
 import Overview from "./pages/dashboard/Overview.jsx";
 import Settings from "./pages/dashboard/Settings.jsx";
+import AccountInfo from "./pages/dashboard/settings/AccountInfo.jsx";
+import Security from "./pages/dashboard/settings/Security.jsx";
 import Notification from "./pages/dashboard/Notification.jsx";
 import History from "./pages/dashboard/History.jsx";
 import Admin from "./pages/dashboard/Admin.jsx";
@@ -18,10 +21,18 @@ import Edit from "./pages/dashboard/subscription/Edit";
 import Error from "./pages/Error";
 import NotFound from "./pages/NotFound";
 
-import { adminLoader, authLoader, dashboardLoader } from "./lib/loader.js";
+//loaders
+import {dashboardLoader, authLoader} from '@/lib/loader'
+
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Analytics } from "@vercel/analytics/react";
+import { ClerkProvider } from '@clerk/react';
+import { Login } from './pages/auth/Login';
+import Loading from './components/Loading';
+import Renew from './pages/dashboard/subscription/Renew';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -41,10 +52,12 @@ const router = createBrowserRouter([
   {
     path: "/auth",
     loader: authLoader,
-
+    hydrateFallbackElement: <Loading/>,
     children: [
-      { path: "login", element: <Auth />, action: login },
-      { path: "register", element: <Auth />, action: register },
+      { path: "login", element: <Login/> },
+      { path: "register", element: <Register /> },
+      { path: "forgot-password", element: <ForgetPwd /> },
+  
     ],
   },
 
@@ -52,29 +65,48 @@ const router = createBrowserRouter([
     element: <Dashboard />,
     path: "/dashboard",
     loader: dashboardLoader,
-    shouldRevalidate: ({ currentUrl, nextUrl }) => {
-      return currentUrl.hostname !== nextUrl.hostname;
+    
+    shouldRevalidate: ({
+    currentUrl,
+    nextUrl,
+      defaultShouldRevalidate,
+    }) => {
+      // Navigating between dashboard children?
+      if (
+        currentUrl.pathname.startsWith("/dashboard") &&
+        nextUrl.pathname.startsWith("/dashboard")
+      ) {
+        return false;
+      }
+
+      return defaultShouldRevalidate;
     },
     id: "dashboard",
-    hydrateFallbackElement: <div>Loading...</div>,
+    hydrateFallbackElement: <Loading/>,
     errorElement: <Error />,
     children: [
       {
         index: true,
         element: <Overview />,
-
-        hydrateFallbackElement: <div>Loading...</div>,
       },
       {
         path: "subscriptions",
         element: <Subscriptions />,
       },
-      { path: "subscriptions/add", element: <Add /> },
+      { path: "subscriptions/add", element: <Add /> }, 
       { path: "subscriptions/:id/edit", element: <Edit /> },
+      {path: "subscriptions/:id/renew", element: <Renew/>},
       { path: "notifications", element: <Notification /> },
       { path: "history", element: <History /> },
-      { path: "admin", element: <Admin />, loader: adminLoader },
-      { path: "settings", element: <Settings /> },
+      { path: "admin", element: <Admin /> },
+      {
+        path: "settings",
+        element: <Settings />,
+        children: [
+          { index: true, element: <AccountInfo /> },
+          { path: "security", element: <Security /> },
+        ],
+      },
       { path: "*", element: <NotFound /> },
     ],
   },
@@ -83,14 +115,18 @@ const router = createBrowserRouter([
     element: <NotFound />,
   },
 ]);
+const key = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+    <ClerkProvider publishableKey={key}>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
 
       <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
       <Analytics />
     </QueryClientProvider>
+    </ClerkProvider>
+   
   </StrictMode>,
 );

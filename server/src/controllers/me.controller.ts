@@ -1,22 +1,46 @@
-import { id } from "zod/v4/locales";
+
 import  {Request, Response, NextFunction} from 'express'
+import {getAuth }from '@clerk/express'
+import {prisma }from '../libs/prisma.js'
 
 export async function getMe(req: Request, res: Response, next: NextFunction) {
-  const accessToken = req.cookies.accessToken;
-
-  if (!accessToken) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
 
     try {
-        // The requireAuth middleware should have already verified the token and set req.user
-        const user = req.user;
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
+       
+   
+        const {userId: clerkId} = getAuth(req);
+        
+        if(!clerkId){
+          return res.status(401).json({message: 'Access denied'})
         }
 
-        return res.json({message: "User information retrieved successfully", user:{username: user.username, id:user.id, role: user.role, baseCurrency: user.baseCurrency} });
+        const user = await prisma.user.findUnique({
+          where: {
+            clerkId
+          }
+        })
+
+        if(!user){
+          return res.status(404).json({message: 'User not found'})
+        }
+
+        return res.json({
+          message: "User information retrieved successfully", 
+          user:{
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username, 
+            email: user.email,
+            role: user.role, 
+            baseCurrency: user.baseCurrency,
+            reminderDaysBefore: user.reminderDaysBefore,
+            emailVerified: user.emailVerified,
+            emailNotificationEnabled: user.emailNofiticationEnabled,
+            createdAt: user.createdAt,
+          } 
+        });
+
     } catch (err) {
         console.error(`Me error: ${err}`)
         next(err);

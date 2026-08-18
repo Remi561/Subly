@@ -1,7 +1,7 @@
 //getallsubscription
 //getsubsbyid
 import {
-  getSubscriptions,
+  getAlmostExpiredSubscriptions,
   getSubscriptionById,
   createSubscriptions,
   deleteSubscriptionById,
@@ -11,6 +11,8 @@ import {
   getSubscriptionsInfo,
   getSubscriptionExpenses,
   getSpendingByCategory,
+  cancelSubscription,
+  archiveSubscription,
 } from "../controllers/subs.controller.js";
 
 //post request
@@ -21,14 +23,26 @@ import {
 import { Router } from "express";
 
 export const subscriptionRouter = Router()
+// GET Methods
 subscriptionRouter.get("/paginated", getPaginatedSubscription);
-subscriptionRouter.get("/", getSubscriptions);
+subscriptionRouter.get("/almostExpired", getAlmostExpiredSubscriptions);
 subscriptionRouter.get("/expenses", getSubscriptionExpenses);
 subscriptionRouter.get("/categories", getSpendingByCategory);
 subscriptionRouter.get("/info", getSubscriptionsInfo);
 subscriptionRouter.get("/:id", getSubscriptionById);
+
+// POST Method
 subscriptionRouter.post("/add", createSubscriptions);
+
+//PATCH Methods
 subscriptionRouter.patch("/edit/:id", editSubscriptionById);
-subscriptionRouter.delete("/delete/:id", deleteSubscriptionById);
 subscriptionRouter.patch("/:id/renew", renewSubscription);
+subscriptionRouter.patch("/cancel/:id", cancelSubscription);
+subscriptionRouter.patch("/archive/:id", archiveSubscription);
+
+
+// DELETE method
+subscriptionRouter.delete("/delete/:id", deleteSubscriptionById);
+
+
 

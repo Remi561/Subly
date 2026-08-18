@@ -1,4 +1,4 @@
-import { url } from "zod";
+
 import z from "zod";
 
 export const RegisterSchemas = z.object({
@@ -39,7 +39,7 @@ export const LoginSchemas = RegisterSchemas.omit({
   baseCurrency: true,
 });
 
-const currencySchema = z
+export const currencySchema = z
   .string()
   .trim()
   .length(3, "Currency must be a 3-letter currency code")

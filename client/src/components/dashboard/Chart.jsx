@@ -56,16 +56,13 @@ const spendingChartConfig = {
 };
 
 const chartConfig = {
-  ENTERTAINMENT: {
-    label: "Entertainment",
-    color: "var(--color-subly-brand-blue)",
-  },
-  AI_TOOLS: { label: "Ai Tools", color: "var(--color-subly-success)" },
-  STORAGE: { label: "Storage", color: "var(--color-subly-warning)" },
-  PRODUCTIVITY: {
-    label: "Productivity",
-    color: "var(--color-subly-brand-purple)",
-  },
+  ENTERTAINMENT: { label: "Entertainment", color: "#1565c0" },
+  PRODUCTIVITY: { label: "Productivity", color: "#5B35F5" },
+  AI_TOOLS: { label: "AI Tools", color: "#10B981" },
+  STORAGE: { label: "Storage", color: "#F59E0B" },
+  SOFTWARE: { label: "Software", color: "#06B6D4" },
+  EDUCATION: { label: "Education", color: "#8B5CF6" },
+  OTHER: { label: "Other", color: "#64748B" },
 };
 
 export function SpendingOverviewChart({ chartData, baseCurrency }) {
