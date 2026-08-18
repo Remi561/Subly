@@ -4,7 +4,7 @@
   "main": "server.ts",
   "scripts": {
     "start": "node dist/server.js",
-    "build": "npm install && npx prisma generate",
+    "build": "npx tsc && npx prisma generate",
     "dev": "tsx watch src/server.ts"
   },
   "type": "module",
