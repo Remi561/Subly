@@ -28,7 +28,7 @@ function BottomNavLink({ item }) {
             <Icon size={20} />
           </span>
 
-          <span>{item.label}</span>
+          <span className="hidden md:block">{item.label}</span>
         </>
       )}
     </NavLink>

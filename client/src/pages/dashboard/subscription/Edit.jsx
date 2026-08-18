@@ -1,10 +1,11 @@
 import Breadcrumbs from "@/components/Breadcrumb"
 import { useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchWithAuth } from "@/lib/utils";
+
 import EditForm from "@/components/dashboard/EditForm";
 import { useNavigate } from "react-router";
 import { Spinner } from "@/components/ui/spinner";
+import { apiFetch } from "@/lib/action";
 
 export default function Edit() {
     const { id } = useParams()
@@ -20,32 +21,30 @@ export default function Edit() {
     
     const {data: subscription, isLoading  } = useQuery({
         queryKey: ['subscriptions', "edit",{id}],
-        queryFn: ()=> fetchWithAuth(`/api/subscription/${id}`).then(res => res.json())
+        queryFn: ()=> apiFetch(`/api/subscription/${id}`)
     })
 
     const { data:rateDb, isError } = useQuery({
       queryKey: ["rates"],
-      queryFn: () => fetchWithAuth("/api/rate").then((res) => res.json()),
+      queryFn: () => apiFetch("/api/rate"),
 
       staleTime: 24 * 60 * 60 * 1000, //1 day
       gcTime: 1000 * 60 * 60 * 24,
     });
 
     const mutation = useMutation({
-      mutationFn: async (editSub) => {
-        const response = await fetchWithAuth(`/api/subscription/edit/${id}`, {
+      mutationFn: async (editSub) =>  await apiFetch(`/api/subscription/edit/${id}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify(editSub),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message);
-        }
-      },
+        }),
+        
 
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+        queryClient.invalidateQueries({ queryKey: ["history"] });
         queryClient.invalidateQueries({ queryKey: ["subscriptions", "info"] });
         navigate("/dashboard/subscriptions");
       },

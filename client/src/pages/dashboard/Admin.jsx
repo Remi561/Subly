@@ -28,8 +28,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchWithAuth, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { toneStyles } from "@/lib/var";
+import {apiFetch} from '@/lib/action'
 
 const metricCards = [
   {
@@ -124,7 +125,7 @@ export default function Admin() {
     isError: statsError,
   } = useQuery({
     queryKey: ["admin", "stats"],
-    queryFn: () => fetchWithAuth("/api/admin/stats").then((res) => res.json()),
+    queryFn: () => apiFetch("/api/admin/stats"),
   });
 
   const {
@@ -133,16 +134,15 @@ export default function Admin() {
     isError: usersError,
   } = useQuery({
     queryKey: ["admin", "users"],
-    queryFn: () => fetchWithAuth("/api/admin/users").then((res) => res.json()),
+    queryFn: () => apiFetch("/api/admin/users"),
   });
 
   const roleMutation = useMutation({
-    mutationFn: async ({ userId, action }) => {
-      const response = await fetchWithAuth(`/api/admin/${action}/${userId}`, {
+    mutationFn: async ({ userId, action }) => apiFetch(`/api/admin/${action}/${userId}`, {
         method: "PATCH",
-      });
-      return response.json();
-    },
+      }),
+    
+  
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin"] });
       toast.success(data?.message || "User role updated");

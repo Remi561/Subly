@@ -1,78 +1,86 @@
-
-
-
-
-
-
-import { StatCard } from "../../components/dashboard/Stats";
+import Breadcrumbs from "@/components/Breadcrumb";
+import { StatCard } from "@/components/dashboard/Stats";
 import { SpendingByCategoryChart, SpendingOverviewChart } from "@/components/dashboard/Chart";
-import { OverviewTable } from "@/components/dashboard/Overview";
-import { useRouteLoaderData } from "react-router";
+
+import { AlmostExpiredTable } from "@/components/dashboard/AlmostExpiredTable";
+
 import {
   StatCardsSkeleton,
   ChartSkeleton,
+  SubscriptionTableSkeleton,
 } from "@/components/dashboard/Skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { fetchWithAuth } from "@/lib/utils";
-import { SubscriptionTableSkeleton } from "@/components/dashboard/Skeleton";
-const Overview = () => {
-  const data = useRouteLoaderData("dashboard");
+import {apiFetch} from '@/lib/action'
 
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+
+const Overview = () => {
+  
+  
+  const crumbs = [
+    { name: "Dashboard", href: '' },
+    { name: "Overview", href: "/dashboard" },
+  ];
+  // data fetching 
+  
+  const {data: me} = useCurrentUser()
   const { data: stats, isLoading } = useQuery({
     queryKey: ["subscriptions", "info"],
-    queryFn: () =>
-      fetchWithAuth("/api/subscription/info").then((res) => res.json()),
+    queryFn: () => apiFetch("/api/subscription/info"),
   });
 
-  const { data: rawData, isLoading: subsLoading } = useQuery({
-    queryKey: ["subscription"],
-    queryFn: () => fetchWithAuth("/api/subscription").then((res) => res.json()),
+  const { data: almostExpiredRes, isLoading: almostExpiredLoading } = useQuery({
+    queryKey: ["subscriptions", "almostExpired"],
+    queryFn: () => apiFetch("/api/subscription/almostExpired"),
   });
 
   const { data: chartData, isLoading: chartDataLoading } = useQuery({
     queryKey: ["chart", "line chart"],
-    queryFn: () =>
-      fetchWithAuth("/api/subscription/expenses").then((res) => res.json()),
+    queryFn: () => apiFetch("/api/subscription/expenses"),
   });
 
   const { data: pieChart, isLoading: pieChartLoading } = useQuery({
     queryKey: ["chart", "piechart"],
-    queryFn: () =>
-      fetchWithAuth("/api/subscription/categories").then((res) => res.json()),
+    queryFn: () => apiFetch("/api/subscription/categories"),
   });
 
-  return (
-    <section>
-      <header className="mb-6">
-        {/* <p className="text-sm font-semibold text-subly-brand-blue">Overview</p> */}
+  const baseCurrency = me?.user?.baseCurrency 
 
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-subly-text-primary">
-          Dashboard
+  return (
+    <section className="space-y-6">
+      {/* Breadcrumb Section */}
+      <div className="mb-2">
+        <Breadcrumbs crumbs={crumbs} />
+      </div>
+
+      {/* Header Section */}
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          Overview
         </h1>
 
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-subly-text-secondary">
-          Monitor your subscriptions, spending, active plans, and expired
-          renewals from one place.
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+          Monitor your subscriptions, spending, active plans, and expired renewals from one place.
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Top Section: 4 White Shadowed Subscription Stat Cards */}
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {isLoading ? (
           <StatCardsSkeleton />
         ) : (
-          <StatCard stat={stats} baseCurrency={data?.user?.baseCurrency} />
+          <StatCard stat={stats} baseCurrency={baseCurrency} />
         )}
       </div>
 
-      {/* Charts */}
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+      {/* Spending Charts Grid */}
+      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         {chartDataLoading ? (
           <ChartSkeleton />
         ) : (
           <SpendingOverviewChart
             chartData={chartData}
-            baseCurrency={data?.user?.baseCurrency}
+            baseCurrency={baseCurrency}
           />
         )}
         {pieChartLoading ? (
@@ -80,21 +88,25 @@ const Overview = () => {
         ) : (
           <SpendingByCategoryChart
             pieChart={pieChart}
-            baseCurrency={data?.user?.baseCurrency}
+            baseCurrency={baseCurrency}
           />
         )}
       </div>
 
-      {subsLoading ? (
+      {/* Almost Expired Subscriptions Table */}
+      {almostExpiredLoading ? (
         <SubscriptionTableSkeleton />
       ) : (
-        <OverviewTable
-          subscriptions={rawData?.data}
-          baseCurrency={data?.user?.baseCurrency}
+        <AlmostExpiredTable
+          subscriptions={almostExpiredRes?.data}
+          baseCurrency={baseCurrency}
         />
       )}
+
+      
+  
     </section>
   );
-}
+};
 
-export default Overview
+export default Overview;

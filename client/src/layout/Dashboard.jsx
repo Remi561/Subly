@@ -1,14 +1,30 @@
 
 import { Outlet } from 'react-router'
+
 import { Sidebar } from '../components/Sidebar'
 import { Navbar } from '../components/Navbar';
 import { Toaster } from '@/components/ui/sonner';
 
+
+import Loading from '@/components/Loading';
+import Error from '@/pages/Error';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+
 const Dashboard = () => {
+  const {isError, isLoading} = useCurrentUser()
+
+  if(isLoading){
+    return <Loading/>
+  }
+  if(isError){
+    return <Error/> 
+  }
+
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       <Sidebar />
-      <main className="min-h-screen px-4 pb-28 pt-5 sm:px-6 lg:ml-72 lg:px-8 lg:pb-8">
+      <main className="min-h-screen px-4 pb-28 pt-5 sm:px-6 lg:ml-64 lg:px-8 lg:pb-8">
         <Outlet />
         <Toaster richColors position="top-right" />
       </main>

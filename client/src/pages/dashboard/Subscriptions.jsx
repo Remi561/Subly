@@ -1,18 +1,21 @@
 import { SubscriptionResponsiveTable } from "@/components/dashboard/SubsTable"
 import { Search } from "@/components/dashboard/Search";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { fetchWithAuth } from "@/lib/utils";
-import { useRouteLoaderData, useSearchParams } from "react-router";
+
+import { useSearchParams } from "react-router";
 import Breadcrumbs from "@/components/Breadcrumb";
 import { SubscriptionTableSkeleton } from "@/components/dashboard/Skeleton";
 import PaginationList from "@/components/dashboard/Pagination";
+import { apiFetch } from "@/lib/action";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 
 const Subscriptions = () => {
   const[searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
   const page = searchParams.get("page") || 1;
-  const userData = useRouteLoaderData("dashboard");
+
+  const {data: userData }= useCurrentUser();
   const handlePageChange = (newPage) => {
     searchParams.set("page", newPage);
 
@@ -22,13 +25,14 @@ const Subscriptions = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["subscriptions", { search: searchQuery, page }],
 
-    queryFn: () =>
-      fetchWithAuth(
-        `/api/subscription/paginated?search=${encodeURIComponent(searchQuery)}&page=${page}`,
-      ).then((res) => res.json()),
+    queryFn: () => apiFetch(
+        `/api/subscription/paginated?search=${encodeURIComponent(searchQuery)}&page=${page}`
+      ),
 
     placeholderData: keepPreviousData,
   });
+
+  const baseCurrency = userData?.user?.baseCurrency
 
  
   const breadCrumb = [
@@ -61,7 +65,7 @@ const Subscriptions = () => {
       ) : (
         <SubscriptionResponsiveTable
           data={data}
-          baseCurrency={userData?.user?.baseCurrency}
+          baseCurrency={baseCurrency}
         />
       )}
       <div className="mt-2">

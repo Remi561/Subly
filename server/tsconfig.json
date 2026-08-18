@@ -12,6 +12,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "src/routes/rate.route.js"],
+  "include": ["src", "src/routes/rate.route.ts"],
   "exclude": ["node_modules", "dist"]
 }

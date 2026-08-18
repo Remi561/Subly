@@ -6,25 +6,22 @@ import { Button } from "@/components/ui/button";
 
 import { Bell, Trash2 } from "lucide-react";
 
-import { fetchWithAuth } from "@/lib/utils";
+import { apiFetch } from "@/lib/action";
 
 export default function NotificationPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["notifications"],
-    queryFn: () =>
-      fetchWithAuth("/api/notification", {
-        credentials: "include",
-      }).then((res) => res.json()),
+    queryFn: () => apiFetch("/api/notification"),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) =>
-      fetchWithAuth(`/api/notification/delete/${id}`, {
+      apiFetch(`/api/notification/delete/${id}`, {
         method: "DELETE",
-        credentials: "include",
-      }).then((res) => res.json()),
+      
+      }),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

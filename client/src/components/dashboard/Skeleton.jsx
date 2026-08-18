@@ -15,14 +15,19 @@ export function StatCardsSkeleton() {
   return (
     <>
       {Array.from({ length: 4 }).map((_, index) => (
-     
-        
-            
-                
-                <CardContent key={index} >
-                  <Skeleton className="h-30 w-full" />
-                </CardContent>
-        
+        <div
+          key={index}
+          className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-md"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="w-full space-y-2">
+              <Skeleton className="h-3 w-24 bg-slate-200" />
+              <Skeleton className="h-8 w-32 bg-slate-200" />
+              <Skeleton className="h-3 w-36 bg-slate-200" />
+            </div>
+            <Skeleton className="h-11 w-11 shrink-0 rounded-xl bg-slate-200" />
+          </div>
+        </div>
       ))}
     </>
   );

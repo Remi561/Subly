@@ -26,7 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchWithAuth, formatCategory, formatDate, formatMoney } from "@/lib/utils";
+import {  formatCategory, formatDate, formatMoney } from "@/lib/utils";
+import { apiFetch } from "@/lib/action";
 
 const historyTypeConfig = {
   CREATED: {
@@ -111,9 +112,7 @@ export default function History() {
       if (range !== "ALL") params.set("range", range);
       params.set("page", page);
 
-      return fetchWithAuth(`/api/history?${params.toString()}`).then((res) =>
-        res.json(),
-      );
+      return apiFetch(`/api/history?${params.toString()}`);
     },
     placeholderData: keepPreviousData,
   });
@@ -203,14 +202,11 @@ export default function History() {
               </TableHeader>
               <TableBody>
                 {data.history.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
+                  <TableRow key={item.id} 
+                  className="border-subly-border hover:bg-subly-soft-blue/40 h-12">
+                    <TableCell className={'py-2'}>
                       <div className="flex items-center gap-3">
-                        <img
-                          src={item.subscriptionLogoUrl}
-                          alt=""
-                          className="h-9 w-9 rounded-xl border border-subly-border object-cover"
-                        />
+
                         <span className="font-medium capitalize text-subly-text-primary">
                           {item.subscriptionName}
                         </span>
