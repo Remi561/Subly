@@ -1,25 +1,25 @@
 import express, { Response, Request, NextFunction } from 'express';
-import { env } from "./src/config/env.ts";
+import { env } from "./config/env.js";
 
 import cookieParser from "cookie-parser";
-import { subscriptionRouter } from "./src/routes/subs.route.ts";
-import { requireAuth } from "./src/middlewares/requireAuth.middleware.ts";
+import { subscriptionRouter } from "./routes/subs.route.js";
+import { requireAuth } from "./middlewares/requireAuth.middleware.js";
 
 import {
   apiLimiter,
   authLimiter,
-} from "./src/middlewares/rateLimiter.middleware.ts";
-import { adminRouter } from "./src/routes/admin.route.ts";
-import { requireAdmin } from "./src/middlewares/requireAdmin.middleware.ts";
-import { meRouter } from "./src/routes/me.route.ts";
+} from "./middlewares/rateLimiter.middleware.js";
+import { adminRouter } from "./routes/admin.route.js";
+import { requireAdmin } from "./middlewares/requireAdmin.middleware.js";
+import { meRouter } from "./routes/me.route.js";
 
-import { currencyRouters } from "./src/routes/rate.route.ts";
-import { historyRouter } from "./src/routes/history.route.ts";
+import { currencyRouters } from "./routes/rate.route.js";
+import { historyRouter } from "./routes/history.route.js";
 import cors from "cors";
-import { notificationRouter } from "./src/routes/notification.route.ts";
-import { jobsMaintenanceRouter } from "./src/routes/maintenance.route.ts";
+import { notificationRouter } from "./routes/notification.route.js";
+import { jobsMaintenanceRouter } from "./routes/maintenance.route.js";
 import {clerkMiddleware, getAuth} from '@clerk/express'
-import {webHooksRouter} from './src/routes/webhooks.route.ts'
+import {webHooksRouter} from './routes/webhooks.route.js'
 
 
 
