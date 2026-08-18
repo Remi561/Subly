@@ -1,10 +1,4 @@
-// import {getToken} from '@clerk/react'
-// export function getApiBaseUrl() {
-//   return import.meta.env.VITE_API_URL;
 
-import { useQuery } from "@tanstack/react-query";
-
-// }
 
 
 
@@ -34,13 +28,4 @@ export async function apiFetch(url, options = {}) {
     }
   
   return response.json()
-}
-
-export function GetCurrentUser(){
-  const {data, isError} = useQuery({
-    queryKey: ['me'],
-    queryFn:() =>  apiFetch('/api/me')
-  })
-
-  return {data, isError}; 
 }
