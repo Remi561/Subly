@@ -14,8 +14,6 @@ const getEnv = (name: string) => {
 
 export const env = {
   PORT: getEnv("PORT") || 3001,
-  ACCESS_TOKEN_SECRET: getEnv("ACCESS_TOKEN_SECRET"),
-  REFRESH_TOKEN_SECRET: getEnv("REFRESH_TOKEN_SECRET"),
   NODE_ENV: getEnv("NODE_ENV"),
   DATABASE_URL: getEnv("DATABASE_URL"),
   CLIENT_URL: getEnv("CLIENT_URL"),
