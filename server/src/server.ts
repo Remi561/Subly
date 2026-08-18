@@ -26,9 +26,10 @@ import {webHooksRouter} from './routes/webhooks.route.js'
 
 const app = express()
 
-app.use(express.json())
+
 
 app.use(clerkMiddleware())
+app.use(express.json())
 
 
 
