@@ -9,7 +9,7 @@ import {
   NavLink,
   Outlet,
 
-  useRouteLoaderData,
+
 } from "react-router";
 
 
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/card";
 
 import {useClerk} from "@clerk/react"
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const settingsLinks = [
   {
@@ -41,7 +42,7 @@ const settingsLinks = [
 ];
 
 export default function Settings() {
-  const data = useRouteLoaderData("dashboard");
+  const {data} = useCurrentUser()
 
   const {signOut } = useClerk()
 
@@ -80,7 +81,7 @@ export default function Settings() {
                 className={({ isActive }) =>
                   `group flex items-center gap-3 rounded-xl border px-4 py-3.5 transition-all ${
                     isActive
-                      ? "border-[#1565c0]/20 bg-[#bbdefb]/20 shadow-sm"
+                      ? "border-subly-accent/20 bg-subly-sidebar-active/20 shadow-sm"
                       : "border-transparent hover:border-slate-200 hover:bg-slate-50"
                   }`
                 }
@@ -90,7 +91,7 @@ export default function Settings() {
                     <span
                       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
                         isActive
-                          ? "bg-[#1565c0] text-white"
+                          ? "bg-subly-accent text-white"
                           : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
                       }`}
                     >
@@ -100,7 +101,7 @@ export default function Settings() {
                       <p
                         className={`text-sm font-semibold ${
                           isActive
-                            ? "text-[#1565c0]"
+                            ? "text-subly-accent"
                             : "text-subly-text-primary"
                         }`}
                       >
@@ -114,7 +115,7 @@ export default function Settings() {
                       size={14}
                       className={`shrink-0 ${
                         isActive
-                          ? "text-[#1565c0]"
+                          ? "ext-subly-accent"
                           : "text-slate-300 group-hover:text-slate-400"
                       }`}
                     />

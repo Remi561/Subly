@@ -19,10 +19,11 @@ import Dashboard from "./layout/Dashboard.jsx";
 import Add from "./pages/dashboard/subscription/Add";
 import Edit from "./pages/dashboard/subscription/Edit";
 import Error from "./pages/Error";
+import Protected from './components/dashboard/Protected'
+import Public from './components/dashboard/Public'
 import NotFound from "./pages/NotFound";
 
-//loaders
-import {dashboardLoader, authLoader} from '@/lib/loader'
+
 
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -45,70 +46,64 @@ const queryClient = new QueryClient({
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <App />,
-  },
-
-  {
-    path: "/auth",
-    loader: authLoader,
-    hydrateFallbackElement: <Loading/>,
+    element: <Public/>,
     children: [
-      { path: "login", element: <Login/> },
-      { path: "register", element: <Register /> },
-      { path: "forgot-password", element: <ForgetPwd /> },
-  
-    ],
-  },
-
-  {
-    element: <Dashboard />,
-    path: "/dashboard",
-    loader: dashboardLoader,
+      {
+        path: "/",
+        element: <App />,
+      },
     
-    shouldRevalidate: ({
-    currentUrl,
-    nextUrl,
-      defaultShouldRevalidate,
-    }) => {
-      // Navigating between dashboard children?
-      if (
-        currentUrl.pathname.startsWith("/dashboard") &&
-        nextUrl.pathname.startsWith("/dashboard")
-      ) {
-        return false;
-      }
-
-      return defaultShouldRevalidate;
-    },
-    id: "dashboard",
-    hydrateFallbackElement: <Loading/>,
-    errorElement: <Error />,
-    children: [
       {
-        index: true,
-        element: <Overview />,
-      },
-      {
-        path: "subscriptions",
-        element: <Subscriptions />,
-      },
-      { path: "subscriptions/add", element: <Add /> }, 
-      { path: "subscriptions/:id/edit", element: <Edit /> },
-      {path: "subscriptions/:id/renew", element: <Renew/>},
-      { path: "notifications", element: <Notification /> },
-      { path: "history", element: <History /> },
-      { path: "admin", element: <Admin /> },
-      {
-        path: "settings",
-        element: <Settings />,
+        path: "/auth",
+    
         children: [
-          { index: true, element: <AccountInfo /> },
-          { path: "security", element: <Security /> },
+          { path: "login", element: <Login/> },
+          { path: "register", element: <Register /> },
+          { path: "forgot-password", element: <ForgetPwd /> },
+      
         ],
       },
-      { path: "*", element: <NotFound /> },
-    ],
+    ]
+  },
+  
+
+  {
+    element: <Protected/>,
+    children: [
+      {
+        element: <Dashboard />,
+        path: "/dashboard",
+        
+    
+        hydrateFallbackElement: <Loading/>,
+        errorElement: <Error />,
+        children: [
+          {
+            index: true,
+            element: <Overview />,
+          },
+          {
+            path: "subscriptions",
+            element: <Subscriptions />,
+          },
+          { path: "subscriptions/add", element: <Add /> }, 
+          { path: "subscriptions/:id/edit", element: <Edit /> },
+          {path: "subscriptions/:id/renew", element: <Renew/>},
+          { path: "notifications", element: <Notification /> },
+          { path: "history", element: <History /> },
+          { path: "admin", element: <Admin /> },
+          {
+            path: "settings",
+            element: <Settings />,
+            children: [
+              { index: true, element: <AccountInfo /> },
+              { path: "security", element: <Security /> },
+            ],
+          },
+          { path: "*", element: <NotFound /> },
+        ],
+      },
+    ]
   },
   {
     path: "*",

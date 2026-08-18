@@ -1,10 +1,5 @@
 
 
-
-
-
-
-
 export async function apiFetch(url, options = {}) {
     const getApiBaseUrl = import.meta.env.VITE_API_URL;
     const response = await fetch(`${getApiBaseUrl}${url}`, {

@@ -2,11 +2,12 @@ import { SubscriptionResponsiveTable } from "@/components/dashboard/SubsTable"
 import { Search } from "@/components/dashboard/Search";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
-import { useRouteLoaderData, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import Breadcrumbs from "@/components/Breadcrumb";
 import { SubscriptionTableSkeleton } from "@/components/dashboard/Skeleton";
 import PaginationList from "@/components/dashboard/Pagination";
 import { apiFetch } from "@/lib/action";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 
 const Subscriptions = () => {
@@ -14,7 +15,7 @@ const Subscriptions = () => {
   const searchQuery = searchParams.get("search") || "";
   const page = searchParams.get("page") || 1;
 
-  const userData = useRouteLoaderData("dashboard");
+  const {data: userData }= useCurrentUser();
   const handlePageChange = (newPage) => {
     searchParams.set("page", newPage);
 

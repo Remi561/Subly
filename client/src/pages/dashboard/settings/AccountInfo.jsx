@@ -73,6 +73,7 @@ export default function AccountInfo() {
       toggleValue: emailNotifEnabled,
       onToggle: () => setEmailNotifEnabled((prev) => !prev),
     },
+
     {
       icon: Calendar,
       label: "Member Since",
@@ -101,7 +102,7 @@ export default function AccountInfo() {
       {/* Profile header card */}
       <Card className="rounded-xl border-subly-border bg-subly-card shadow-sm">
         <CardContent className="flex items-center gap-4 p-6">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#1565c0] text-lg font-bold text-white">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-subly-accent text-lg font-bold text-white">
             {user?.firstName?.[0]?.toUpperCase() ||
               user?.username?.[0]?.toUpperCase() ||
               "U"}
@@ -115,7 +116,7 @@ export default function AccountInfo() {
               {user?.email}
             </p>
           </div>
-          <Badge className="ml-auto shrink-0 bg-[#bbdefb]/50 text-[#1565c0] border-[#1565c0]/10">
+          <Badge className="ml-auto shrink-0 bg-subly-sidebar-active/50 text-subly-accent border-s-subly-accent/10">
             {user?.role}
           </Badge>
         </CardContent>
@@ -154,7 +155,7 @@ export default function AccountInfo() {
                             ? "bg-green-50 text-green-700 border-green-100"
                             : item.badgeVariant === "muted"
                               ? "bg-slate-100 text-slate-500 border-slate-200"
-                              : "bg-[#bbdefb]/50 text-[#1565c0] border-[#1565c0]/10"
+                              : "bg-subly-sidebar-active/50` text-subly-accent border-subly-accent/10"
                         }`}
                       >
                         {item.value}
@@ -171,8 +172,8 @@ export default function AccountInfo() {
                       role="switch"
                       aria-checked={item.toggleValue}
                       onClick={item.onToggle}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1565c0] focus-visible:ring-offset-2 ${
-                        item.toggleValue ? "bg-[#1565c0]" : "bg-slate-200"
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-subly-accent focus-visible:ring-offset-2 ${
+                        item.toggleValue ? "bg-subly-accent" : "bg-slate-200"
                       }`}
                     >
                       <span
@@ -184,7 +185,7 @@ export default function AccountInfo() {
                   ) : item.canEdit ? (
                     <button
                       type="button"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#1565c0]"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-subly-accent"
                       title={`Edit ${item.label}`}
                     >
                       <Pencil size={14} />

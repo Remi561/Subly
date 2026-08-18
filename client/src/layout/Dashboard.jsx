@@ -6,7 +6,19 @@ import { Navbar } from '../components/Navbar';
 import { Toaster } from '@/components/ui/sonner';
 
 
+import Loading from '@/components/Loading';
+import Error from '@/pages/Error';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+
 const Dashboard = () => {
+  const {isError, isLoading} = useCurrentUser()
+
+  if(isLoading){
+    return <Loading/>
+  }
+  if(isError){
+    return <Error/> 
+  }
 
 
   return (

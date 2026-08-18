@@ -132,7 +132,7 @@ export default function Security() {
       <Card className="rounded-xl border-subly-border bg-subly-card shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1565c0] text-white">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-subly-accent text-white">
               <Lock size={16} />
             </span>
             <div>
@@ -148,7 +148,7 @@ export default function Security() {
         <CardContent>
           {/* Messages */}
           {serverError && (
-            <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-[#e31b23]">
+            <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-subly-danger">
               <Ban size={14} className="shrink-0" />
               <span>{serverError}</span>
             </div>
@@ -179,7 +179,7 @@ export default function Security() {
                   type={showCurrentPw ? "text" : "password"}
                   placeholder="••••••••"
                   {...register("currentPassword")}
-                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-900 shadow-xs transition placeholder:text-slate-400 focus:border-[#1565c0] focus:ring-2 focus:ring-[#bbdefb]"
+                  className="h-11 rounded-xl border-slate-20focus:border-subly-accent focus:ring-2 focus:ring-subly-sidebar-active"
                 />
                 <button
                   type="button"
@@ -190,7 +190,7 @@ export default function Security() {
                 </button>
               </div>
               {errors.currentPassword && (
-                <div className="flex items-center gap-1.5 text-xs font-medium text-[#e31b23]">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-subly-danger">
                   <Ban size={12} />
                   <span>{errors.currentPassword.message}</span>
                 </div>
@@ -215,7 +215,7 @@ export default function Security() {
                   type={showNewPw ? "text" : "password"}
                   placeholder="••••••••"
                   {...register("newPassword")}
-                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-900 shadow-xs transition placeholder:text-slate-400 focus:border-[#1565c0] focus:ring-2 focus:ring-[#bbdefb]"
+                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-900 shadow-xs transition placeholder:text-slate-400 focus:border-subly-accent focus:ring-2 focus:ring-subly-sidebar-active"
                 />
                 <button
                   type="button"
@@ -226,7 +226,7 @@ export default function Security() {
                 </button>
               </div>
               {errors.newPassword && (
-                <div className="flex items-center gap-1.5 text-xs font-medium text-[#e31b23]">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-subly-danger">
                   <Ban size={12} />
                   <span>{errors.newPassword.message}</span>
                 </div>
@@ -251,11 +251,11 @@ export default function Security() {
                   type="password"
                   placeholder="••••••••"
                   {...register("confirmPassword")}
-                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-sm text-slate-900 shadow-xs transition placeholder:text-slate-400 focus:border-[#1565c0] focus:ring-2 focus:ring-[#bbdefb]"
+                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-sm text-slate-900 shadow-xs transition placeholder:text-slate-400 focus:border-subly-accent focus:ring-2 focus:ring-subly-sidebar-active"
                 />
               </div>
               {errors.confirmPassword && (
-                <div className="flex items-center gap-1.5 text-xs font-medium text-[#e31b23]">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-subly-danger">
                   <Ban size={12} />
                   <span>{errors.confirmPassword.message}</span>
                 </div>
@@ -265,7 +265,7 @@ export default function Security() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="group h-11 w-full rounded-xl bg-[#1565c0] text-sm font-semibold text-white shadow-md shadow-[#1565c0]/20 transition-all hover:bg-[#0d47a1] hover:shadow-lg hover:shadow-[#1565c0]/30 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
+              className="group h-11 w-full rounded-xl bg-subly-accent text-sm font-semibold text-white shadow-md shadow-subly-accent/20 transition-all hover:bg-[#0d47a1] hover:shadow-lg hover:shadow-subly-accent/30 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
             >
               {isSubmitting ? (
                 "Updating..."
@@ -310,7 +310,7 @@ export default function Security() {
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
                     device.isCurrent
-                      ? "bg-[#1565c0] text-white"
+                      ? "bg-subly-accent text-white"
                       : "bg-slate-100 text-slate-500"
                   }`}
                 >

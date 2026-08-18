@@ -11,18 +11,19 @@ import {
 } from "@/components/dashboard/Skeleton";
 import { useQuery } from "@tanstack/react-query";
 import {apiFetch} from '@/lib/action'
-import {useRouteLoaderData} from 'react-router'
+
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const Overview = () => {
   
-  const me = useRouteLoaderData('dashboard')
+  
   const crumbs = [
     { name: "Dashboard", href: '' },
     { name: "Overview", href: "/dashboard" },
   ];
   // data fetching 
   
-
+  const {data: me} = useCurrentUser()
   const { data: stats, isLoading } = useQuery({
     queryKey: ["subscriptions", "info"],
     queryFn: () => apiFetch("/api/subscription/info"),
